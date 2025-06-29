@@ -1,0 +1,3092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Moderation Analytics Dashboard - Elite Executive Edition (Stabilized)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for a clean, professional look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom scrollbar for real-time feed */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px; /* For horizontal scrollbars */
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2a2a2a; /* Dark track */
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4a4a4a; /* Darker thumb */
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6a6a6a; /* Lighter thumb on hover */
+        }
+
+        /* Base Body and Container Styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, #000000 0%, #050505 100%); /* Deepest, most immersive background */
+            color: #F8FAFC; /* Near white text color for high readability */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px; /* Adjusted padding for better screen coverage on smaller devices, but still ample on large */
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #080808; /* Even darker charcoal for main content areas */
+            border-radius: 35px; /* Even more rounded corners for a premium feel */
+            padding: 70px; /* Generous padding inside the container */
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.98), 0 80px 220px rgba(0, 0, 0, 0.85); /* Deeper, more pronounced shadow */
+            max-width: 1500px; /* Even wider for better chart presentation */
+            width: 100%;
+            margin-top: 40px;
+            border: 1px solid #151515; /* Thicker, more distinct border */
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+            border-bottom: 2px solid #202020;
+            padding-bottom: 40px;
+            width: 100%; /* Ensure header spans full width of container */
+        }
+        .dashboard-header h1 {
+            font-size: 5.8rem; /* Even larger, more impactful main title */
+            font-weight: 900; /* Extra bold */
+            color: #00e676; /* Vibrant emerald green for primary accents */
+            text-align: left; /* Align to left in header */
+            margin-bottom: 0;
+            letter-spacing: -0.09em; /* Tighter letter spacing */
+            text-shadow: 0 0 30px rgba(0, 230, 118, 1); /* More prominent glow for prominence */
+        }
+        .platform-status-group {
+            display: flex;
+            gap: 30px; /* Space between status indicators */
+        }
+        .platform-status {
+            display: flex;
+            align-items: center;
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #A0A0A0;
+            padding: 16px 35px;
+            border-radius: 16px;
+            background-color: #151515;
+            border: 1px solid #282828;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.7);
+            transition: all 0.3s ease;
+        }
+        .platform-status:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+        }
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #00e676; /* Green for operational */
+            box-shadow: 0 0 18px rgba(0, 230, 118, 1.2);
+            margin-right: 20px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        .status-indicator.red {
+            background-color: #ef4444;
+            box-shadow: 0 0 18px rgba(239, 68, 68, 1.2);
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+
+        p {
+            font-size: 1.15rem; /* Standard paragraph text size */
+            line-height: 2;
+            margin-bottom: 25px;
+            color: #c0c0c0; /* Softer grey for body text */
+        }
+
+        /* Chart Section Styles */
+        .chart-section {
+            background-color: #101010; /* Darker background for individual chart cards */
+            border-radius: 28px; /* Consistent rounding */
+            padding: 60px; /* Generous padding within chart sections */
+            margin-bottom: 65px; /* Space between chart sections */
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9); /* Defined shadow for chart cards */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #202020; /* Subtle border for chart cards */
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+        .chart-section:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 35px 80px rgba(0, 230, 118, 0.5); /* Subtle glow on hover */
+        }
+        .chart-section h2 {
+            font-size: 3.8rem; /* Prominent chart titles */
+            font-weight: 900;
+            color: #4CAF50; /* A friendly green color for chart titles */
+            margin-bottom: 45px;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.8); /* Subtle glow for titles */
+        }
+        canvas {
+            max-width: 100%;
+            height: auto; /* Ensure canvas scales its height proportionally */
+            background-color: #101010; /* Ensure chart canvas background matches section */
+            border-radius: 25px; /* Match section rounding */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            min-height: 400px; /* Minimum height for readability on smaller screens */
+            height: 65vh; /* Responsive height: 65% of viewport height */
+            max-height: 700px; /* Max height to prevent excessive stretching on very large screens */
+            margin-top: 40px;
+        }
+
+        /* KPI Grid and Card Styles */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Larger minimum width for KPIs */
+            gap: 55px; /* Increased gap between KPI cards */
+            margin-bottom: 90px; /* More space below the KPI section */
+            padding: 30px;
+        }
+        .kpi-card {
+            background-color: #0F0F0F; /* Matches general background of container */
+            border-radius: 25px;
+            padding: 55px;
+            text-align: center;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.8); /* Subtle shadow */
+            border: 1px solid #202020;
+            transition: transform 0.4s ease, box-shadow 0.4s ease; /* Smooth hover effect */
+        }
+        .kpi-card:hover {
+            transform: translateY(-20px); /* More pronounced lift effect on hover */
+            box-shadow: 0 35px 80px rgba(0, 230, 118, 0.8); /* Accent glow on hover */
+        }
+        .kpi-card h3 {
+            font-size: 2.2rem; /* Clear KPI labels */
+            font-weight: 800;
+            color: #00e676; /* Emerald green for KPI labels */
+            margin-bottom: 25px;
+        }
+        .kpi-card .kpi-value {
+            font-size: 6.5rem; /* Prominent KPI values */
+            font-weight: 900;
+            color: #00e676; /* Emerald green for KPI values */
+            line-height: 1;
+            text-shadow: 0 0 30px rgba(0, 230, 118, 1); /* Subtle glow */
+        }
+        .kpi-card .kpi-period {
+            font-size: 1.25rem;
+            color: #A0A0A0;
+            margin-top: 20px;
+        }
+
+        /* Time Filter Button Styles */
+        .time-filters {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 35px; /* More space between buttons */
+            margin-bottom: 75px;
+        }
+        .time-filters button {
+            background-color: #202020; /* Dark button background */
+            color: #F8FAFC;
+            padding: 22px 50px; /* Generous padding for buttons */
+            border-radius: 20px;
+            border: 1px solid #404040; /* Subtle border */
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.3rem;
+            text-transform: uppercase; /* Uppercase for a professional look */
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .time-filters button:hover {
+            background-color: #303030;
+            transform: translateY(-7px);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.9);
+            border-color: #909090;
+        }
+        .time-filters button.active {
+            background-color: #00e676; /* Emerald green active state */
+            color: #0c0c0c; /* Dark text on active button */
+            box-shadow: 0 0 45px rgba(0, 230, 118, 1.8); /* Stronger glow for active */
+            border-color: #00e676;
+            transform: translateY(-6px) scale(1.07); /* Slight lift and scale */
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.995); /* Even darker, almost opaque overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #181818; /* Modal background matches chart sections */
+            border-radius: 28px;
+            padding: 65px; /* Generous padding */
+            max-width: 950px;
+            width: 90%;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 1.2);
+            position: relative;
+            transform: translateY(-90px);
+            transition: transform 0.5s ease;
+            border: 1px solid #9a9a9a;
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        .modal-content h3 {
+            font-size: 3.8rem;
+            color: #00e676; /* Emerald green for modal titles */
+            margin-bottom: 50px;
+            border-bottom: 2px solid #606060; /* Subtle border */
+            padding-bottom: 40px;
+        }
+        .modal-content p {
+            font-size: 1.3rem;
+            line-height: 2.2;
+            color: #c8c8c8;
+            margin-bottom: 40px;
+        }
+        .modal-content ul {
+            list-style: disc;
+            list-style-position: inside;
+            padding-left: 45px;
+            color: #b0b0b0;
+            font-size: 1.2rem;
+        }
+        .modal-content li {
+            margin-bottom: 18px;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 45px;
+            right: 45px;
+            background: none;
+            border: none;
+            font-size: 5rem;
+            color: #A0A0A0; /* Muted close button */
+            cursor: pointer;
+            transition: color 0.5s ease, transform 0.5s ease;
+        }
+        .modal-close-btn:hover {
+            color: #FF4D4D; /* Bright red on hover */
+            transform: rotate(720deg) scale(1.5); /* Spin and scale effect */
+        }
+
+        /* Info Box */
+        .data-info-box {
+            background-color: #2a2a2a;
+            border-radius: 25px;
+            padding: 50px;
+            margin-bottom: 60px;
+            border: 1px dashed #00e676; /* Dashed border with accent color */
+            text-align: center;
+            font-size: 1.25rem;
+            color: #a0a0a0;
+            font-weight: 500;
+        }
+
+        /* Executive Summary Section */
+        .executive-summary-section {
+            background-color: #080808; /* Matches container background */
+            border-radius: 35px;
+            padding: 65px;
+            margin-bottom: 60px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 1);
+            border: 1px solid #151515;
+        }
+
+        .executive-summary-section h2 {
+            font-size: 4.2rem;
+            font-weight: 900;
+            color: #00e676; /* Primary accent for summary title */
+            margin-bottom: 55px;
+            text-align: center;
+            text-shadow: 0 0 25px rgba(0, 230, 118, 0.9);
+        }
+
+        .executive-summary-section h3 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            color: #F8FAFC; /* Near white for sub-sections */
+            margin-top: 50px;
+            margin-bottom: 35px;
+            border-bottom: 1px solid #606060; /* Darker, subtle border */
+            padding-bottom: 25px;
+        }
+
+        .executive-summary-section p {
+            font-size: 1.25rem;
+            color: #c0c0c0;
+            line-height: 2.1;
+            margin-bottom: 25px;
+        }
+
+        .executive-summary-section ul {
+            list-style: disc;
+            list-style-position: inside;
+            padding-left: 45px;
+            color: #b0b0b0;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+
+        .executive-summary-section li {
+            margin-bottom: 15px;
+        }
+
+        .realtime-feed {
+            background-color: #1c1c1c;
+            border-radius: 25px;
+            padding: 45px;
+            max-height: 550px; /* Taller feed */
+            overflow-y: auto;
+            border: 1px solid #3d3d3d;
+            margin-top: 45px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8); /* Inner shadow for depth */
+        }
+        .realtime-feed-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 22px;
+            padding-bottom: 20px;
+            border-bottom: 1px dashed rgba(100, 100, 100, 1);
+            font-size: 1.15rem;
+            color: #c0c0c0;
+            line-height: 1.8;
+        }
+        .realtime-feed-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .feed-icon {
+            font-size: 2.8rem; /* Even larger icons */
+            margin-right: 22px;
+            flex-shrink: 0;
+        }
+        .icon-critical { color: #ef4444; } /* Red */
+        .icon-high { color: #f59e0b; } /* Amber */
+        .icon-medium { color: #3b82f6; } /* Blue */
+        .icon-low { color: #10b981; } /* Emerald */
+        .icon-info { color: #9ca3af; } /* Gray */
+
+        .dashboard-footer {
+            margin-top: 70px;
+            padding-top: 45px;
+            border-top: 1px solid #333333;
+            text-align: center;
+            font-size: 1.1rem;
+            color: #808080;
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 40px; /* Reduce padding on medium screens */
+            }
+            .dashboard-header h1 {
+                font-size: 4.5rem; /* Adjust header font size */
+            }
+            .platform-status {
+                font-size: 1.2rem;
+                padding: 14px 28px;
+            }
+            .chart-section {
+                padding: 45px; /* Adjust chart section padding */
+            }
+            .chart-section h2 {
+                font-size: 3.2rem;
+            }
+            .chart-container {
+                min-height: 300px;
+                height: 55vh; /* Further reduce chart height on medium screens */
+                max-height: 600px;
+            }
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Adjust KPI grid for smaller screens */
+                gap: 40px;
+            }
+            .kpi-card {
+                padding: 45px;
+            }
+            .kpi-card .kpi-value {
+                font-size: 5.5rem;
+            }
+            .time-filters {
+                gap: 25px;
+            }
+            .time-filters button {
+                padding: 18px 40px;
+                font-size: 1.2rem;
+            }
+            .executive-summary-section {
+                padding: 50px;
+            }
+            .executive-summary-section h2 {
+                font-size: 3.5rem;
+            }
+            .executive-summary-section h3 {
+                font-size: 2.8rem;
+            }
+            .realtime-feed {
+                max-height: 450px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 15px; /* Even tighter padding on very small screens */
+            }
+            .container {
+                padding: 30px;
+            }
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding-bottom: 30px;
+                margin-bottom: 40px;
+            }
+            .dashboard-header h1 {
+                font-size: 3.8rem;
+                text-align: center;
+                margin-bottom: 25px;
+                letter-spacing: -0.05em;
+            }
+            .platform-status-group {
+                flex-direction: column;
+                gap: 15px;
+                width: 100%;
+            }
+            .platform-status {
+                width: 100%;
+                justify-content: center;
+                font-size: 1.1rem;
+                padding: 12px 25px;
+            }
+            .status-indicator {
+                width: 16px;
+                height: 16px;
+                margin-right: 15px;
+            }
+            .chart-section {
+                padding: 30px;
+                margin-bottom: 50px;
+            }
+            .chart-section h2 {
+                font-size: 2.5rem;
+                margin-bottom: 30px;
+            }
+            .chart-container {
+                min-height: 250px;
+                height: 50vh; /* Consistent height on mobile, but adaptable */
+                max-height: 400px;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr; /* Stack KPIs on small screens */
+                gap: 30px;
+                padding: 10px;
+                margin-bottom: 60px;
+            }
+            .kpi-card {
+                padding: 35px;
+            }
+            .kpi-card h3 {
+                font-size: 1.8rem;
+                margin-bottom: 18px;
+            }
+            .kpi-card .kpi-value {
+                font-size: 4.5rem;
+            }
+            .kpi-card .kpi-period {
+                font-size: 1.1rem;
+            }
+            .time-filters {
+                flex-direction: column;
+                align-items: stretch; /* Stretch buttons to full width */
+                padding: 0 15px;
+                gap: 15px;
+                margin-bottom: 50px;
+            }
+            .time-filters button {
+                width: 100%;
+                font-size: 1.1rem;
+                padding: 15px;
+            }
+            .modal-content {
+                padding: 35px;
+                width: 95%; /* Wider modal on small screens */
+            }
+            .modal-content h3 {
+                font-size: 2.5rem;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+            }
+            .modal-content p, .modal-content ul, .modal-content li {
+                font-size: 1.1rem;
+                margin-bottom: 20px;
+            }
+            .modal-close-btn {
+                top: 25px;
+                right: 25px;
+                font-size: 3.5rem;
+            }
+            .data-info-box {
+                padding: 30px;
+                font-size: 1.1rem;
+                margin-bottom: 40px;
+            }
+            .executive-summary-section {
+                padding: 35px;
+                margin-bottom: 50px;
+            }
+            .executive-summary-section h2 {
+                font-size: 3rem;
+                margin-bottom: 40px;
+            }
+            .executive-summary-section h3 {
+                font-size: 2.2rem;
+                margin-top: 35px;
+                margin-bottom: 25px;
+                padding-bottom: 18px;
+            }
+            .executive-summary-section p, .executive-summary-section ul, .executive-summary-section li {
+                font-size: 1.15rem;
+                margin-bottom: 18px;
+            }
+            .realtime-feed {
+                padding: 30px;
+                max-height: 400px;
+                margin-top: 30px;
+            }
+            .realtime-feed-item {
+                font-size: 1rem;
+                margin-bottom: 18px;
+                padding-bottom: 15px;
+            }
+            .feed-icon {
+                font-size: 2rem;
+                margin-right: 18px;
+            }
+            .dashboard-footer {
+                margin-top: 50px;
+                padding-top: 30px;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Adjust Chart.js fonts for smaller screens */
+        @media (max-width: 768px) {
+            .chartjs-tooltip { /* Targeting Chart.js tooltip */
+                font-size: 1rem !important;
+                padding: 15px !important;
+            }
+            .chartjs-tooltip .tooltip-title {
+                font-size: 1.1rem !important;
+            }
+            .chartjs-tooltip .tooltip-body {
+                font-size: 1rem !important;
+            }
+            .chartjs-render-monitor {
+                font-size: 0.9rem !important; /* Adjusting base font for charts */
+            }
+            .chartjs-legend-labels {
+                font-size: 1rem !important;
+            }
+            .chartjs-axis-title {
+                font-size: 1.1rem !important;
+            }
+            .chartjs-axis-tick {
+                font-size: 0.9rem !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="dashboard-header">
+            <h1>Roblox Moderation Analytics</h1>
+            <div class="platform-status-group">
+                <div class="platform-status">
+                    <span class="status-indicator"></span> Platform Status: Operational
+                </div>
+                <div class="platform-status">
+                    <span class="status-indicator" style="animation: none; box-shadow: none; background-color: #3b82f6;"></span> Data Latency: <span class="text-blue-400">Low ( <1s )</span>
+                </div>
+                <div class="platform-status">
+                    <span class="status-indicator" style="animation: none; box-shadow: none; background-color: #f59e0b;"></span> System Health: <span class="text-yellow-400">Stable</span>
+                </div>
+            </div>
+        </header>
+        
+        <!-- "About This Data" Section -->
+        <div class="data-info-box">
+            <p><strong>IMPORTANT NOTE:</strong> All data presented in this dashboard is purely hypothetical and generated for demonstration purposes. It does not represent actual Roblox moderation data. This tool serves as a conceptual model for analytics and reporting.</p>
+        </div>
+
+        <p class="text-center mb-20 text-gray-400">
+            Gain executive-level insights into simulated moderation activities on the Roblox platform. This dashboard provides a comprehensive graphical overview, key performance indicators, and trend projections to support strategic decision-making in platform safety.
+        </p>
+
+        <!-- Time Period Filters -->
+        <div class="time-filters">
+            <button class="time-filter-btn" data-time-range="last7days">Last 7 Days</button>
+            <button class="time-filter-btn active" data-time-range="last30days">Last 30 Days</button>
+            <button class="time-filter-btn" data-time-range="quarterly">Quarterly</button>
+            <button class="time-filter-btn" data-time-range="yearly">Yearly</button>
+            <button class="time-filter-btn" data-time-range="alltime">All Time</button>
+        </div>
+
+        <!-- Key Performance Indicators (KPIs) Section -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <h3>Total Actions</h3>
+                <div class="kpi-value" id="kpiTotalActions"></div>
+                <div class="kpi-period" id="kpiTotalActionsPeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Average Daily Actions</h3>
+                <div class="kpi-value" id="kpiAverageDailyActions"></div>
+                <div class="kpi-period" id="kpiAverageDailyActionsPeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Permanent Bans</h3>
+                <div class="kpi-value" id="kpiPermanentBans"></div>
+                <div class="kpi-period" id="kpiPermanentBansPeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Incident Resolution</h3>
+                <div class="kpi-value" id="kpiResolvedRate"></div>
+                <div class="kpi-period" id="kpiResolvedRatePeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Policy Adherence</h3>
+                <div class="kpi-value" id="kpiPolicyAdherence"></div>
+                <div class="kpi-period" id="kpiPolicyAdherencePeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Avg. Time to Action</h3>
+                <div class="kpi-value" id="kpiAvgTimeToAct"></div>
+                <div class="kpi-period" id="kpiAvgTimeToActPeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Repeat Offender Rate</h3>
+                <div class="kpi-value" id="kpiRepeatOffenderRate"></div>
+                <div class="kpi-period" id="kpiRepeatOffenderRatePeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Escalation Rate</h3>
+                <div class="kpi-value" id="kpiEscalationRate"></div>
+                <div class="kpi-period" id="kpiEscalationRatePeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Appeals Overturned</h3>
+                <div class="kpi-value" id="kpiAppealsOverturned"></div>
+                <div class="kpi-period" id="kpiAppealsOverturnedPeriod"></div>
+            </div>
+             <div class="kpi-card">
+                <h3>AI Detection Rate</h3>
+                <div class="kpi-value" id="kpiAIDetectionRate"></div>
+                <div class="kpi-period" id="kpiAIDetectionRatePeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Avg. Review Time</h3>
+                <div class="kpi-value" id="kpiAvgReviewTime"></div>
+                <div class="kpi-period" id="kpiAvgReviewTimePeriod"></div>
+            </div>
+             <div class="kpi-card">
+                <h3>Recidivism Rate</h3>
+                <div class="kpi-value" id="kpiRecidivismRate"></div>
+                <div class="kpi-period" id="kpiRecidivismRatePeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Avg. User Impact</h3>
+                <div class="kpi-value" id="kpiAvgUserImpact"></div>
+                <div class="kpi-period" id="kpiAvgUserImpactPeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Report Volume Growth</h3>
+                <div class="kpi-value" id="kpiReportVolumeGrowth"></div>
+                <div class="kpi-period" id="kpiReportVolumeGrowthPeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>False Positive Rate</h3>
+                <div class="kpi-value" id="kpiFalsePositiveRate"></div>
+                <div class="kpi-period" id="kpiFalsePositiveRatePeriod"></div>
+            </div>
+            <div class="kpi-card">
+                <h3>Violation Density</h3>
+                <div class="kpi-value" id="kpiViolationDensity"></div>
+                <div class="kpi-period" id="kpiViolationDensityPeriod"></div>
+            </div>
+        </div>
+
+        <!-- Chart 1: Moderation Actions by Type (Bar Chart) -->
+        <div class="chart-section">
+            <h2>Moderation Action Distribution</h2>
+            <div class="chart-container">
+                <canvas id="moderationActionsChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This bar chart illustrates the distribution of various moderation actions, such as warnings,
+                content deletions, account suspensions, and permanent bans, over the selected period.
+            </p>
+        </div>
+
+        <!-- New Chart: Incident Severity Distribution (Polar Area Chart) -->
+        <div class="chart-section">
+            <h2>Incident Severity Distribution</h2>
+            <div class="chart-container">
+                <canvas id="incidentSeverityChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This chart breaks down moderation incidents by their severity level, providing insights into
+                the types of risks and their prevalence on the platform.
+            </p>
+        </div>
+
+        <!-- New Chart: Appeals Outcome Distribution (Pie/Doughnut Chart) -->
+        <div class="chart-section">
+            <h2>Appeals Outcome Distribution</h2>
+            <div class="chart-container">
+                <canvas id="appealsOutcomeChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This chart visualizes the outcomes of user appeals against moderation actions, indicating
+                the percentage of decisions that were upheld, overturned, or modified upon review.
+            </p>
+        </div>
+
+        <!-- New Chart: User Report Accuracy (Doughnut Chart) -->
+        <div class="chart-section">
+            <h2>User Report Accuracy</h2>
+            <div class="chart-container">
+                <canvas id="userReportAccuracyChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This chart displays the accuracy of user-submitted reports, differentiating between
+                actionable reports (leading to moderation) and non-actionable reports.
+            </p>
+        </div>
+
+        <!-- New Chart: Hourly Moderation Activity (Bar Chart) -->
+        <div class="chart-section">
+            <h2>Hourly Moderation Activity</h2>
+            <div class="chart-container">
+                <canvas id="hourlyActivityChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This chart displays the average moderation actions per hour, highlighting peak activity times
+                and potential staffing requirements throughout a typical day.
+            </p>
+        </div>
+
+        <!-- New Chart: Daily Moderation Activity (Day of Week - Bar Chart) -->
+        <div class="chart-section">
+            <h2>Daily Moderation Activity (Day of Week)</h2>
+            <div class="chart-container">
+                <canvas id="dailyOfWeekActivityChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This chart shows the average moderation actions per day of the week, identifying weekly
+                patterns and potential fluctuations in platform activity.
+            </p>
+        </div>
+
+        <!-- Chart: Moderation Activity Trend & Projection (Line Chart) -->
+        <div class="chart-section">
+            <h2>Moderation Activity Trend & Projection</h2>
+            <div class="chart-container">
+                <canvas id="activityTrendChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This line chart depicts the hypothetical trend of total moderation actions over time,
+                with a clear distinction between historical data and future projections. Granularity
+                adjusts based on the selected time filter (daily, monthly, or yearly views).
+            </p>
+        </div>
+
+         <!-- New Chart: Emerging Threat Trends (Line Chart) -->
+        <div class="chart-section">
+            <h2>Emerging Threat Trends</h2>
+            <div class="chart-container">
+                <canvas id="emergingThreatsChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This line chart tracks the conceptual emergence and trend of newly identified
+                violation patterns or exploit types, indicating the platform's ability to adapt
+                to new safety challenges.
+            </p>
+        </div>
+
+        <!-- New Chart: Predictive Model Confidence (Line Chart) -->
+        <div class="chart-section">
+            <h2>Predictive Model Confidence (Conceptual)</h2>
+            <div class="chart-container">
+                <canvas id="predictiveConfidenceChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This conceptual chart illustrates the average confidence score of our AI models
+                in identifying and flagging potential violations over time. Higher confidence
+                indicates more accurate and reliable automated detection.
+            </p>
+        </div>
+
+        <!-- New Chart: Policy Violation Trend by Category (Stacked Area Chart) -->
+        <div class="chart-section">
+            <h2>Policy Violation Trend by Category</h2>
+            <div class="chart-container">
+                <canvas id="violationCategoryTrendChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This stacked area chart shows the trend of different content violation categories
+                over time, providing insight into the evolving landscape of problematic content.
+            </p>
+        </div>
+
+        <!-- Chart 3: Content Violation Categories (Donut Chart) -->
+        <div class="chart-section">
+            <h2>Content Violation Categories</h2>
+            <div class="chart-container">
+                <canvas id="contentViolationsChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This donut chart shows the breakdown of different content violation categories,
+                indicating which types of problematic content are most frequently moderated.
+                Click on a segment for more details and hypothetical tactical briefs.
+            </p>
+        </div>
+
+        <!-- Chart 4: Moderation Source Breakdown (Bar Chart) -->
+        <div class="chart-section">
+            <h2>Moderation Source Breakdown</h2>
+            <div class="chart-container">
+                <canvas id="moderationSourceChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This bar chart illustrates the proportion of moderation actions originating from different sources:
+                user-submitted reports, automated detection systems, and internal review by human moderators.
+            </p>
+        </div>
+
+        <!-- New Chart: Geographic Incident Distribution (Bar Chart) -->
+        <div class="chart-section">
+            <h2>Geographic Incident Distribution (Conceptual)</h2>
+            <div class="chart-container">
+                <canvas id="geographicDistributionChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This conceptual bar chart illustrates the hypothetical distribution of moderation incidents
+                across various geographic regions, providing high-level insights for regional resource allocation.
+            </p>
+        </div>
+
+         <!-- New Chart: User Age Group Incident Distribution (Bar Chart) -->
+        <div class="chart-section">
+            <h2>User Age Group Incident Distribution (Conceptual)</h2>
+            <div class="chart-container">
+                <canvas id="userAgeGroupIncidentsChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This conceptual bar chart shows the hypothetical distribution of moderation incidents
+                across different user age groups, highlighting potential demographic-specific safety concerns.
+            </p>
+        </div>
+
+        <!-- New Chart: Content Type Incident Breakdown (Doughnut Chart) -->
+        <div class="chart-section">
+            <h2>Content Type Incident Breakdown (Conceptual)</h2>
+            <div class="chart-container">
+                <canvas id="contentTypeBreakdownChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This conceptual chart provides a breakdown of incidents by the type of content involved,
+                such as chat, images, audio, or game assets, informing content-specific moderation strategies.
+            </p>
+        </div>
+
+        <!-- New Chart: Appeal Reason Breakdown (Doughnut Chart) -->
+        <div class="chart-section">
+            <h2>Appeal Reason Breakdown (Conceptual)</h2>
+            <div class="chart-container">
+                <canvas id="appealReasonBreakdownChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This conceptual chart provides a breakdown of the common reasons users submit appeals,
+                offering insights into areas where policy clarity or initial moderation decisions
+                might be misinterpreted or challenged.
+            </p>
+        </div>
+
+        <!-- New Chart: Moderator Team Performance (Conceptual) -->
+        <div class="chart-section">
+            <h2>Moderator Team Performance (Conceptual)</h2>
+            <div class="chart-container">
+                <canvas id="moderatorPerformanceChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This conceptual chart provides an abstracted view of moderator team efficiency,
+                showing hypothetical average actions processed per moderator or their quality scores over time.
+            </p>
+        </div>
+
+        <!-- New Chart: Moderator Efficacy Over Time (Conceptual) -->
+        <div class="chart-section">
+            <h2>Moderator Efficacy Over Time (Conceptual)</h2>
+            <div class="chart-container">
+                <canvas id="moderatorEfficacyTrendChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This conceptual line chart illustrates the overall effectiveness of our moderation efforts
+                over time, based on a combination of accuracy and efficiency metrics.
+            </p>
+        </div>
+
+         <!-- New Chart: Moderator Activity by Shift (Conceptual Bar Chart) -->
+        <div class="chart-section">
+            <h2>Moderator Activity by Shift (Conceptual)</h2>
+            <div class="chart-container">
+                <canvas id="moderatorShiftActivityChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This conceptual chart shows the hypothetical distribution of moderation actions across
+                different operational shifts (e.g., Day, Night, Weekend), informing staffing and resource allocation.
+            </p>
+        </div>
+
+        <!-- New Chart: Cross-Platform Violation Rate (Conceptual Line Chart) -->
+        <div class="chart-section">
+            <h2>Cross-Platform Violation Rate (Conceptual)</h2>
+            <div class="chart-container">
+                <canvas id="crossPlatformViolationChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This conceptual line chart tracks the hypothetical rate of violations that either originate from
+                or span multiple external platforms, indicating the need for broader safety integrations.
+            </p>
+        </div>
+
+        <!-- Chart 5: User Retention Over Time (Line Chart) -->
+        <div class="chart-section">
+            <h2>User Retention Post-Moderation</h2>
+            <div class="chart-container">
+                <canvas id="userRetentionChart"></canvas>
+            </div>
+            <p class="text-gray-500 mt-5 text-center text-sm">
+                This line chart hypothetically shows the retention rate of users who have experienced moderation,
+                compared to a baseline, indicating the long-term impact on user engagement.
+            </p>
+        </div>
+
+        <!-- Executive Summary Section -->
+        <div class="executive-summary-section">
+            <h2>Executive Summary: Platform Safety & Integrity</h2>
+            <p>
+                Maintaining the integrity and safety of the Roblox platform is our paramount objective. This executive summary provides a high-level overview of our conceptual performance in content moderation, highlighting key operational metrics, strategic initiatives, and a forward-looking perspective. All data is simulated and for illustrative purposes.
+            </p>
+            
+            <h3>Core Performance Metrics Deep Dive</h3>
+            <ul>
+                <li>**Action Volume & Velocity:** Consistently high volume of moderation actions, coupled with a remarkably low Average Time to Action, signifies the agility and breadth of our moderation capabilities. This ensures rapid response and a safer environment.</li>
+                <li>**Accuracy & Fairness:** Strong incident resolution rates and minimal appeals overturned rates underscore the precision and equitable application of our moderation policies. This builds and reinforces user trust and demonstrates consistent policy enforcement.</li>
+                <li>**Policy Adherence & Compliance:** The robust policy adherence rate reflects effective training, clear guidelines, and sophisticated systems that consistently minimize deviations from established safety standards, ensuring regulatory compliance.</li>
+                <li>**Repeat Offender Management:** The trending Repeat Offender Rate provides crucial insights into the effectiveness of deterrents and the need for targeted interventions for persistent policy violators.</li>
+                <li>**Incident Recidivism Rate:** This metric offers deeper insight into the effectiveness of moderation actions in deterring repeat offenses, indicating areas for improved user education or more stringent measures.</li>
+                <li>**Average User Impact Score:** A critical qualitative metric that quantifies the severity of incidents on user experience, helping prioritize efforts on issues with the highest potential for platform disruption.</li>
+                <li>**Community Report Volume Growth:** Tracking the growth of user-submitted reports indicates increased community engagement in safety, but also potential rise in problematic content or awareness.</li>
+                <li>**Average False Positive Rate (AFPR):** A crucial metric for automated systems, ensuring that efficient detection doesn't come at the cost of unfairly impacting users. Maintaining a low AFPR is key to trust.</li>
+                <li>**Policy Violation Density:** This provides a normalized view of safety, showing violations per content item or per user, offering a scalable metric for platform health independent of raw user growth.</li>
+            </ul>
+
+            <h3>System Efficacy: Automated Intelligence, Human Expertise & Community Vigilance</h3>
+            <p>
+                Our multi-layered defense strategy, integrating sophisticated Automated Detection Systems (ADS), expert Human Intelligence & Review (HIR) teams, and robust Community Intelligence (CI) via user reporting, continues to evolve for maximum efficacy.
+            </p>
+            <ul>
+                <li>**Automated Detection (ADS):** Our AI Model Detection Rate remains exceptionally high, indicating ADS effectively identify and handle the vast majority of routine violations with remarkable efficiency and minimal false positives. The low Average False Positive Rate (AFPR) further validates the precision of our automated systems, freeing human resources to focus on nuanced and complex cases.</li>
+                <li>**Human Review (HIR):** HIR teams remain critical for contextual understanding, handling edge cases, and identifying emergent threat vectors that sophisticated automated systems might initially miss. Their high Quality Assurance Scores and low Average Review Time (ART) validate their crucial role in maintaining platform standards, while the Moderator Efficacy Over Time chart tracks their overall contribution.</li>
+                <li>**Community Intelligence (CI):** User reporting (CI) is a vital, real-time feedback loop. The User Report Accuracy metrics, combined with Community Report Volume Growth, demonstrate the value of community vigilance in augmenting automated detection and informing iterative model improvements, leading to more targeted and effective moderation efforts.</li>
+            </ul>
+
+            <h3>Strategic Focus & Future Initiatives</h3>
+            <p>
+                Looking ahead, our strategic objectives center on continuous innovation and proactive measures to stay ahead of evolving threats in the digital landscape:
+            </p>
+            <ul>
+                <li>**Advanced Predictive Analytics:** Developing next-generation AI models to not only detect but also anticipate and neutralize emerging inappropriate content patterns and behavioral trends before they scale, significantly reducing platform risk. The Predictive Model Confidence chart will guide continuous improvement in this area.</li>
+                <li>**Multimodal AI Integration:** Enhancing detection capabilities across new and evolving content formats and user interactions, including advanced audio analysis, real-time video understanding, and cross-modal content correlation, as highlighted by the Content Type Incident Breakdown.</li>
+                <li>**Adaptive & Personalized Safety Frameworks:** Exploring dynamic safety measures that can adapt to user age groups (informed by the User Age Group Incident Distribution), engagement patterns, and regional nuances (informed by Geographic Incident Distribution) without compromising universal safety standards, ensuring a tailored yet consistent user experience.</li>
+                <li>**Global Collaboration & Threat Intelligence:** Strengthening partnerships with industry peers, law enforcement, and global safety organizations to share threat intelligence (visible in Emerging Threat Trends), best practices, and collaborate on universal online safety challenges, particularly addressing Cross-Platform Violation Rates.</li>
+                <li>**Moderator Empowerment & Well-being:** Continued investment in state-of-the-art tools, immersive training programs, and comprehensive well-being support for our moderation teams to ensure their sustained high performance, accuracy, and job satisfaction, reflected in the Moderator Efficacy Over Time, Team Performance, and Moderator Activity by Shift charts.</li>
+                <li>**Data Integrity & Governance:** Reinforcing robust data pipelines and governance frameworks to ensure the accuracy, security, and ethical use of all moderation data, supporting reliable analytics and strategic decision-making.</li>
+            </ul>
+
+            <h3>Technological Innovation & R&D</h3>
+            <p>
+                Our commitment to platform safety is underpinned by continuous technological advancement. Our R&D efforts are focused on pioneering solutions that leverage the latest in artificial intelligence, machine learning, and data engineering to create a more secure and trustworthy environment.
+            </p>
+            <ul>
+                <li>**AI Model Evolution:** Investing in self-improving AI models that adapt to new violation patterns in real-time, reducing the latency between threat emergence and effective mitigation.</li>
+                <li>**Contextual Understanding Engine:** Developing AI that understands not just the literal content but also its context within user interactions and game environments, minimizing false positives and improving accuracy.</li>
+                <li>**Scalable Data Processing:** Implementing next-generation big data pipelines capable of processing petabytes of user-generated content and interaction data with minimal latency, enabling real-time analytics and rapid response.</li>
+                <li>**Automated Takedown Automation:** Expanding capabilities for autonomous detection and removal of highly malicious or unambiguous content, allowing human moderators to focus on complex, nuanced cases.</li>
+            </ul>
+
+            <h3>Community Engagement & Safety Culture</h3>
+            <p>
+                Beyond reactive moderation, fostering a proactive safety culture within our community is paramount. This involves transparent communication, empowering users, and building a shared responsibility for a positive environment.
+            </p>
+            <ul>
+                <li>**Enhanced User Education:** Developing interactive modules and in-game tutorials to educate users on safety policies, reporting mechanisms, and responsible online behavior.</li>
+                <li>**Transparent Policy Communication:** Clearly communicating policy updates and the rationale behind moderation decisions to build trust and understanding within the community.</li>
+                <li>**Incentivizing Positive Behavior:** Exploring mechanisms to reward and recognize users who consistently contribute to a safe and positive platform environment.</li>
+                <li>**Direct Feedback Channels:** Providing accessible and responsive channels for users to provide feedback on safety measures and moderation processes, further refining our Appeal Reason Breakdown analysis.</li>
+            </ul>
+
+
+            <h3>Real-time Incident Overview (Simulated Feed)</h3>
+            <div class="realtime-feed">
+                <div class="realtime-feed-item"><span class="feed-icon icon-critical">&#9888;</span> **14:40:15 (Critical, Impact: 4.9, Action: Perm-Ban):** Exploiting/Cheating detected in "Mega Obby World" (User ID: 98765, Log Ref: 0xAF5F, Source: ADS).</div>
+                <div class="realtime-feed-item"><span class="feed-icon icon-high">&#9889;</span> **14:38:00 (High, Impact: 3.7, Action: Content-Del):** Inappropriate content (Image) removed from user profile (User ID: 87654, Content ID: 1A2B4D, Source: HIR).</div>
+                <div class="realtime-feed-item"><span class="feed-icon icon-medium">&#9878;</span> **14:35:45 (Medium, Impact: 2.5, Action: Warning):** Harassment (Chat) reported in "Build & Battle" (User ID: 12345, Source: User Report).</div>
+                <div class="realtime-feed-item"><span class="feed-icon icon-low">&#9879;</span> **14:33:30 (Low, Impact: 1.2, Action: Mute):** Spam (Chat) detected in public chat (User ID: 23456, System Log: C4EE, Source: ADS).</div>
+                <div class="realtime-feed-item"><span class="feed-icon icon-info">&#x2139;</span> **14:31:00 (Info):** Automated system update deployed (ADS Model v2.5, Performance +++, Region: EU, Action: System-Update).</div>
+                <div class="realtime-feed-item"><span class="feed-icon icon-critical">&#9888;</span> **14:26:45 (Critical, Impact: 4.7, Action: Suspend):** Off-Platform solicitation (Text) detected (User ID: 34567, IP flagged, Source: HIR).</div>
+                <div class="realtime-feed-item"><span class="feed-icon icon-high">&#9889;</span> **14:24:20 (High, Impact: 4.0, Action: Pending):** Hate speech (Audio) in private message (User ID: 45678, HIR escalation, Case: #7891, Source: User Report).</div>
+            </div>
+        </div>
+
+        <p class="text-center text-gray-500 mt-15 text-sm">
+            This professional dashboard provides a robust conceptual framework for high-performance analytics. While all data is simulated, the principles of strategic data visualization and actionable insights remain paramount for maintaining a safe online environment.
+        </p>
+        <div class="dashboard-footer">
+            <p>Dashboard Last Updated: <span id="lastUpdatedDate"></span></p>
+        </div>
+    </div>
+
+    <!-- Modal for Violation Details -->
+    <div id="violationDetailModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" id="closeModalBtn">&times;</button>
+            <h3 id="modalViolationTitle"></h3>
+            <p id="modalViolationDescription"></p>
+            <p class="text-gray-400 mt-4"><em>(Hypothetical examples for illustration only)</em></p>
+            <ul id="modalViolationExamples" class="list-disc list-inside text-sm text-gray-300"></ul>
+            <h4 class="text-lg font-semibold text-gray-200 mt-6 mb-3 border-b border-gray-600 pb-2">Strategic Implications:</h4>
+            <p id="modalStrategicImplications" class="text-gray-400 text-sm"></p>
+        </div>
+    </div>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set the last updated date dynamically
+            const now = new Date();
+            document.getElementById('lastUpdatedDate').textContent = now.toLocaleString();
+
+            // --- Fictional Data for different time ranges ---
+            const allData = {
+                last7days: {
+                    kpi: {
+                        totalActions: 1150, averageDailyActions: 164, permanentBans: 38, resolvedIncidentRate: 97.5,
+                        policyAdherence: 99.4, averageTimeToAct: '2.3 min', repeatOffenderRate: '6.2%',
+                        escalationRate: '10.0%', appealsOverturned: '1.0%', aiDetectionRate: '99.0%', avgReviewTime: '38 sec',
+                        incidentRecidivismRate: '17.5%', avgUserImpact: '2.7', reportVolumeGrowth: '2.5%',
+                        falsePositiveRate: '0.15%', violationDensity: '0.08'
+                    },
+                    actions: {
+                        labels: ['Warning', 'Content Deletion', 'Account Suspension', 'Permanent Ban'],
+                        data: [540, 390, 200, 20]
+                    },
+                    incidentSeverity: {
+                        labels: ['Low', 'Medium', 'High', 'Critical'],
+                        data: [480, 360, 250, 60]
+                    },
+                    appealsOutcome: {
+                        labels: ['Upheld', 'Overturned', 'Modified'],
+                        data: [98.0, 1.8, 0.2] // Percentages
+                    },
+                    userReportAccuracy: {
+                        labels: ['Actionable', 'Non-Actionable'],
+                        data: [80, 20] // 80% actionable, 20% non-actionable
+                    },
+                    hourlyActivity: {
+                        labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                        data: [16, 13, 11, 10, 9, 12, 18, 26, 35, 43, 48, 55, 58, 50, 42, 37, 32, 27, 24, 22, 20, 18, 16, 14]
+                    },
+                    dailyOfWeekActivity: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        data: [165, 180, 170, 185, 200, 145, 110]
+                    },
+                    activityTrend: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        actualData: [165, 180, 170, 185, 200, 145, 110],
+                        projectedData: [null, null, null, null, null, null, 110, 155, 170]
+                    },
+                    emergingThreats: {
+                        labels: ['Day -6', 'Day -5', 'Day -4', 'Day -3', 'Day -2', 'Day -1', 'Today'],
+                        data: [5, 6, 8, 7, 9, 10, 8]
+                    },
+                    predictiveConfidence: {
+                        labels: ['Day -6', 'Day -5', 'Day -4', 'Day -3', 'Day -2', 'Day -1', 'Today'],
+                        data: [90, 91, 92, 91.5, 93, 92.5, 94]
+                    },
+                    violationCategoryTrend: {
+                        labels: ['Day -6', 'Day -5', 'Day -4', 'Day -3', 'Day -2', 'Day -1', 'Today'],
+                        harassment: [20, 22, 25, 23, 27, 28, 26],
+                        inappropriate: [15, 16, 18, 17, 19, 20, 18],
+                        spam: [10, 11, 12, 10, 11, 12, 10],
+                        exploiting: [8, 9, 10, 9, 10, 11, 9]
+                    },
+                    violations: {
+                        labels: ['Harassment', 'Inappropriate Content', 'Spam / Scam', 'Exploiting / Cheating', 'Off-Platform Content', 'Other'],
+                        data: [180, 150, 90, 70, 60, 50]
+                    },
+                    moderationSource: {
+                        labels: ['User Reports', 'Automated Detection', 'Internal Review'],
+                        data: [470, 670, 10]
+                    },
+                    geographicDistribution: {
+                        labels: ['North America', 'Europe', 'Asia', 'South America', 'Africa', 'Oceania'],
+                        data: [450, 340, 220, 90, 60, 35]
+                    },
+                    userAgeGroupIncidents: {
+                        labels: ['<13', '13-17', '18-24', '25-34', '35+'],
+                        data: [370, 420, 210, 105, 75]
+                    },
+                    contentTypeBreakdown: {
+                        labels: ['Chat', 'Image', 'Audio', 'Game Asset', 'Profile'],
+                        data: [420, 310, 160, 110, 55]
+                    },
+                    appealReasonBreakdown: {
+                        labels: ['Misunderstanding Policy', 'Incorrect Action', 'Harassment Claims', 'Other'],
+                        data: [45, 30, 15, 10] // Percentages of appeal reasons
+                    },
+                    moderatorPerformance: {
+                        labels: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'],
+                        avgActions: [52, 58, 49, 55, 62],
+                        qualityScore: [95, 98, 93, 96, 99]
+                    },
+                    moderatorEfficacyTrend: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        data: [91, 93, 92, 94, 95, 93, 91]
+                    },
+                    moderatorShiftActivity: {
+                        labels: ['Day Shift', 'Night Shift', 'Weekend Day', 'Weekend Night'],
+                        data: [350, 250, 150, 100] // Avg actions per shift
+                    },
+                    crossPlatformViolation: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'], // Quarterly labels or monthly if applicable
+                        data: [0.5, 0.6, 0.7, 0.65, 0.8, 0.75, 0.9] // Conceptual percentage
+                    },
+                    userRetention: {
+                        labels: ['Day 1', 'Day 3', 'Day 7', 'Day 14', 'Day 21', 'Day 28'],
+                        data: [99.3, 96.5, 92.5, 85, 75, 65],
+                        baseline: [99.9, 98.5, 95.5, 91.5, 87, 81]
+                    },
+                    strategicImplications: {
+                        'Harassment': 'Slight increase in targeted harassment requires reinforced community guidelines and AI model fine-tuning for pattern recognition.',
+                        'Inappropriate Content': 'Consistent baseline, ongoing focus on visual/audio content analysis and rapid removal to maintain family-friendly environment.',
+                        'Spam / Scam': 'Continued battle against sophisticated phishing. Proactive education and stronger external link filters are recommended.',
+                        'Exploiting / Cheating': 'Fluctuations tied to new game releases. Need for rapid vulnerability identification and patch deployment.',
+                        'Off-Platform Content': 'Steady rate. Enhance in-game warnings and cross-platform monitoring for persistent offenders.',
+                        'Other': 'Diverse category, highlights need for broad, adaptable moderation tools and continuous human training.'
+                    }
+                },
+                last30days: {
+                    kpi: {
+                        totalActions: 5400, averageDailyActions: 180, permanentBans: 160, resolvedIncidentRate: 97.0,
+                        policyAdherence: 99.2, averageTimeToAct: '2.0 min', repeatOffenderRate: '7.0%',
+                        escalationRate: '9.5%', appealsOverturned: '1.2%', aiDetectionRate: '98.8%', avgReviewTime: '35 sec',
+                        incidentRecidivismRate: '18.5%', avgUserImpact: '2.85', reportVolumeGrowth: '3.0%',
+                        falsePositiveRate: '0.12%', violationDensity: '0.07'
+                    },
+                    actions: {
+                        labels: ['Warning', 'Content Deletion', 'Account Suspension', 'Permanent Ban'],
+                        data: [2400, 2000, 900, 100]
+                    },
+                    incidentSeverity: {
+                        labels: ['Low', 'Medium', 'High', 'Critical'],
+                        data: [2300, 1800, 1200, 100]
+                    },
+                    appealsOutcome: {
+                        labels: ['Upheld', 'Overturned', 'Modified'],
+                        data: [97.0, 2.5, 0.5]
+                    },
+                    userReportAccuracy: {
+                        labels: ['Actionable', 'Non-Actionable'],
+                        data: [76, 24]
+                    },
+                    hourlyActivity: {
+                        labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                        data: [16, 13, 11, 10, 9, 12, 18, 26, 35, 43, 48, 55, 58, 50, 42, 37, 32, 27, 24, 22, 20, 18, 16, 14].map(val => val * 3.7)
+                    },
+                    dailyOfWeekActivity: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        data: [170, 185, 175, 190, 210, 150, 115]
+                    },
+                    activityTrend: {
+                        labels: Array.from({length: 30}, (_, i) => `Day ${i + 1}`),
+                        actualData: Array.from({length: 30}, (_, i) => Math.floor(155 + Math.sin(i * 0.4) * 45 + Math.random() * 22)),
+                        projectedData: Array.from({length: 30}, (_, i) => (i < 29 ? null : Math.floor(180 + Math.random() * 20)))
+                    },
+                    emergingThreats: {
+                        labels: Array.from({length: 30}, (_, i) => `Day ${i + 1}`),
+                        data: Array.from({length: 30}, (_, i) => Math.floor(5 + Math.sin(i * 0.2) * 3.5 + Math.random() * 2.5))
+                    },
+                    predictiveConfidence: {
+                        labels: Array.from({length: 30}, (_, i) => `Day ${i + 1}`),
+                        data: Array.from({length: 30}, (_, i) => 91 + Math.sin(i * 0.3) * 3 + Math.random() * 2)
+                    },
+                    violationCategoryTrend: {
+                        labels: Array.from({length: 30}, (_, i) => `Day ${i + 1}`),
+                        harassment: Array.from({length: 30}, (_, i) => Math.floor(70 + Math.sin(i * 0.3) * 15 + Math.random() * 10)),
+                        inappropriate: Array.from({length: 30}, (_, i) => Math.floor(50 + Math.cos(i * 0.2) * 10 + Math.random() * 8)),
+                        spam: Array.from({length: 30}, (_, i) => Math.floor(30 + Math.sin(i * 0.4) * 8 + Math.random() * 6)),
+                        exploiting: Array.from({length: 30}, (_, i) => Math.floor(20 + Math.cos(i * 0.5) * 5 + Math.random() * 4))
+                    },
+                    violations: {
+                        labels: ['Harassment', 'Inappropriate Content', 'Spam / Scam', 'Exploiting / Cheating', 'Off-Platform Content', 'Other'],
+                        data: [850, 750, 450, 380, 280, 220]
+                    },
+                    moderationSource: {
+                        labels: ['User Reports', 'Automated Detection', 'Internal Review'],
+                        data: [2000, 3300, 100]
+                    },
+                    geographicDistribution: {
+                        labels: ['North America', 'Europe', 'Asia', 'South America', 'Africa', 'Oceania'],
+                        data: [2100, 1600, 1100, 380, 280, 110]
+                    },
+                    userAgeGroupIncidents: {
+                        labels: ['<13', '13-17', '18-24', '25-34', '35+'],
+                        data: [1900, 2100, 850, 420, 220]
+                    },
+                    contentTypeBreakdown: {
+                        labels: ['Chat', 'Image', 'Audio', 'Game Asset', 'Profile'],
+                        data: [2100, 1600, 850, 550, 450]
+                    },
+                    appealReasonBreakdown: {
+                        labels: ['Misunderstanding Policy', 'Incorrect Action', 'Harassment Claims', 'Insufficient Evidence', 'Other'],
+                        data: [40, 25, 15, 10, 10]
+                    },
+                    moderatorPerformance: {
+                        labels: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'],
+                        avgActions: [58, 63, 55, 60, 68],
+                        qualityScore: [96, 99, 94, 97, 99.5]
+                    },
+                    moderatorEfficacyTrend: {
+                        labels: Array.from({length: 30}, (_, i) => `Day ${i + 1}`),
+                        data: Array.from({length: 30}, (_, i) => Math.floor(92 + Math.sin(i * 0.2) * 4 + Math.random() * 2))
+                    },
+                    moderatorShiftActivity: {
+                        labels: ['Day Shift', 'Night Shift', 'Weekend Day', 'Weekend Night'],
+                        data: [1200, 900, 600, 300]
+                    },
+                    crossPlatformViolation: {
+                        labels: Array.from({length: 30}, (_, i) => `Day ${i + 1}`),
+                        data: Array.from({length: 30}, (_, i) => 0.6 + Math.sin(i * 0.1) * 0.1 + Math.random() * 0.05)
+                    },
+                    userRetention: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        data: [97.5, 93, 86, 79],
+                        baseline: [99.7, 98, 94.5, 89]
+                    },
+                    strategicImplications: {
+                        'Harassment': 'Continued monitoring of social spaces and refining filters for subtle forms of verbal abuse. Training moderators on new behavioral patterns.',
+                        'Inappropriate Content': 'Focus on proactive detection of user-generated visual content. Collaboration with content creators for policy adherence.',
+                        'Spam / Scam': 'Ongoing effort to detect and block new scam vectors. User awareness campaigns are crucial.',
+                        'Exploiting / Cheating': 'Rapid response required for game-specific exploits. Partnership with developers for quick patches.',
+                        'Off-Platform Content': 'Reinforce in-game communication channels and deterrents for external linking. Educate users on risks.',
+                        'Other': 'Review of "Other" category to identify emerging patterns that may warrant new specific categories or AI models.'
+                    }
+                },
+                quarterly: {
+                    kpi: {
+                        totalActions: 18000, averageDailyActions: 195, permanentBans: 550, resolvedIncidentRate: 96.5,
+                        policyAdherence: 99.0, averageTimeToAct: '1.8 min', repeatOffenderRate: '6.8%',
+                        escalationRate: '9.0%', appealsOverturned: '1.8%', aiDetectionRate: '98.5%', avgReviewTime: '32 sec',
+                        incidentRecidivismRate: '19.5%', avgUserImpact: '2.95', reportVolumeGrowth: '4.0%',
+                        falsePositiveRate: '0.10%', violationDensity: '0.06'
+                    },
+                    actions: {
+                        labels: ['Warning', 'Content Deletion', 'Account Suspension', 'Permanent Ban'],
+                        data: [8000, 7000, 2500, 500]
+                    },
+                    incidentSeverity: {
+                        labels: ['Low', 'Medium', 'High', 'Critical'],
+                        data: [7500, 6500, 4200, 1000]
+                    },
+                    appealsOutcome: {
+                        labels: ['Upheld', 'Overturned', 'Modified'],
+                        data: [96.0, 3.0, 1.0]
+                    },
+                    userReportAccuracy: {
+                        labels: ['Actionable', 'Non-Actionable'],
+                        data: [72, 28]
+                    },
+                    hourlyActivity: {
+                        labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                        data: [16, 13, 11, 10, 9, 12, 18, 26, 35, 43, 48, 55, 58, 50, 42, 37, 32, 27, 24, 22, 20, 18, 16, 14].map(val => val * 15)
+                    },
+                    dailyOfWeekActivity: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        data: [175, 190, 180, 195, 215, 155, 120]
+                    },
+                    activityTrend: {
+                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                        actualData: [4200, 4800, 5200, null],
+                        projectedData: [null, null, null, 5500]
+                    },
+                    emergingThreats: {
+                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                        data: [22, 27, 30, null]
+                    },
+                    predictiveConfidence: {
+                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                        data: [91, 92, 93, null]
+                    },
+                     violationCategoryTrend: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'], // Quarterly labels
+                        harassment: [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800],
+                        inappropriate: [800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200],
+                        spam: [500, 550, 600, 650, 700, 750, 800, 850, 900],
+                        exploiting: [300, 320, 340, 360, 380, 400, 420, 440, 460]
+                    },
+                    violations: {
+                        labels: ['Harassment', 'Inappropriate Content', 'Spam / Scam', 'Exploiting / Cheating', 'Off-Platform Content', 'Other'],
+                        data: [3000, 2400, 1400, 1000, 700, 500]
+                    },
+                    moderationSource: {
+                        labels: ['User Reports', 'Automated Detection', 'Internal Review'],
+                        data: [6500, 9500, 2000]
+                    },
+                    geographicDistribution: {
+                        labels: ['North America', 'Europe', 'Asia', 'South America', 'Africa', 'Oceania'],
+                        data: [6200, 5000, 3400, 1200, 850, 1200]
+                    },
+                    userAgeGroupIncidents: {
+                        labels: ['<13', '13-17', '18-24', '25-34', '35+'],
+                        data: [2100, 2300, 950, 480, 270]
+                    },
+                    contentTypeBreakdown: {
+                        labels: ['Chat', 'Image', 'Audio', 'Game Asset', 'Profile'],
+                        data: [2300, 1800, 950, 650, 550]
+                    },
+                    appealReasonBreakdown: {
+                        labels: ['Misunderstanding Policy', 'Incorrect Action', 'Harassment Claims', 'Insufficient Evidence', 'Technical Issue', 'Other'],
+                        data: [38, 22, 14, 12, 8, 6]
+                    },
+                    moderatorPerformance: {
+                        labels: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'],
+                        avgActions: [60, 65, 57, 62, 70],
+                        qualityScore: [97, 99.5, 95, 98, 99.8]
+                    },
+                    moderatorEfficacyTrend: {
+                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                        data: [92, 94, 96, null]
+                    },
+                    moderatorShiftActivity: {
+                        labels: ['Day Shift', 'Night Shift', 'Weekend Day', 'Weekend Night'],
+                        data: [4000, 3000, 2000, 1000]
+                    },
+                    crossPlatformViolation: {
+                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                        data: [0.7, 0.8, 0.85, null]
+                    },
+                    userRetention: {
+                        labels: ['Month 1', 'Month 2', 'Month 3'],
+                        data: [94, 87, 72],
+                        baseline: [99.5, 96, 88]
+                    },
+                    strategicImplications: {
+                        'Harassment': 'Continued investment in behavioral analytics. Explore more robust in-game reporting tools.',
+                        'Inappropriate Content': 'Prioritize multimodal AI improvements. Proactive content scanning before publishing.',
+                        'Spam / Scam': 'Develop adaptive filters for new evasion techniques. Enhance user education modules.',
+                        'Exploiting / Cheating': 'Establish real-time exploit detection. Foster closer collaboration with game developers.',
+                        'Off-Platform Content': 'Implement stricter communication channel monitoring. Conduct regular compliance audits.',
+                        'Other': 'Periodic review of "Other" category to identify patterns. Diversify moderation toolset.'
+                    }
+                },
+                yearly: {
+                    kpi: {
+                        totalActions: 75000, averageDailyActions: 205, permanentBans: 2000, resolvedIncidentRate: 96.0,
+                        policyAdherence: 98.5, averageTimeToAct: '1.6 min', repeatOffenderRate: '7.5%',
+                        escalationRate: '7.5%', appealsOverturned: '2.2%', aiDetectionRate: '98.2%', avgReviewTime: '30 sec',
+                        incidentRecidivismRate: '20.5%', avgUserImpact: '3.05', reportVolumeGrowth: '5.0%',
+                        falsePositiveRate: '0.09%', violationDensity: '0.05'
+                    },
+                    actions: {
+                        labels: ['Warning', 'Content Deletion', 'Account Suspension', 'Permanent Ban'],
+                        data: [31000, 26000, 14000, 4000]
+                    },
+                    incidentSeverity: {
+                        labels: ['Low', 'Medium', 'High', 'Critical'],
+                        data: [29000, 24000, 16000, 6000]
+                    },
+                    appealsOutcome: {
+                        labels: ['Upheld', 'Overturned', 'Modified'],
+                        data: [95.0, 3.8, 1.2]
+                    },
+                    userReportAccuracy: {
+                        labels: ['Actionable', 'Non-Actionable'],
+                        data: [69, 31]
+                    },
+                    hourlyActivity: {
+                        labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                        data: [16, 13, 11, 10, 9, 12, 18, 26, 35, 43, 48, 55, 58, 50, 42, 37, 32, 27, 24, 22, 20, 18, 16, 14].map(val => val * 65)
+                    },
+                    dailyOfWeekActivity: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        data: [180, 195, 185, 200, 220, 165, 130]
+                    },
+                    activityTrend: {
+                        labels: ['2022', '2023', '2024', 'Proj 2025'],
+                        actualData: [15000, 18000, 21000, null],
+                        projectedData: [null, null, 21000, 24000]
+                    },
+                    emergingThreats: {
+                        labels: ['2022', '2023', '2024', 'Proj 2025'],
+                        data: [75, 90, 105, null]
+                    },
+                    predictiveConfidence: {
+                        labels: ['2022', '2023', '2024', 'Proj 2025'],
+                        data: [90, 91.5, 93, null]
+                    },
+                    violationCategoryTrend: {
+                        labels: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024'],
+                        harassment: [5000, 5500, 6000, 6500],
+                        inappropriate: [4000, 4500, 4800, 5200],
+                        spam: [2500, 2800, 3000, 3200],
+                        exploiting: [1500, 1700, 1800, 2000]
+                    },
+                    violations: {
+                        labels: ['Harassment', 'Inappropriate Content', 'Spam / Scam', 'Exploiting / Cheating', 'Off-Platform Content', 'Other'],
+                        data: [11000, 8500, 5200, 4200, 3200, 1800]
+                    },
+                    moderationSource: {
+                        labels: ['User Reports', 'Automated Detection', 'Internal Review'],
+                        data: [27000, 37000, 11000]
+                    },
+                    geographicDistribution: {
+                        labels: ['North America', 'Europe', 'Asia', 'South America', 'Africa', 'Oceania'],
+                        data: [27000, 22000, 14000, 4800, 3800, 4200]
+                    },
+                    userAgeGroupIncidents: {
+                        labels: ['<13', '13-17', '18-24', '25-34', '35+'],
+                        data: [9500, 11500, 4200, 2200, 1100]
+                    },
+                    contentTypeBreakdown: {
+                        labels: ['Chat', 'Image', 'Audio', 'Game Asset', 'Profile'],
+                        data: [11000, 8500, 4200, 3200, 2200]
+                    },
+                    appealReasonBreakdown: {
+                        labels: ['Misunderstanding Policy', 'Incorrect Action', 'Harassment Claims', 'Insufficient Evidence', 'Technical Issue', 'System Glitch', 'Other'],
+                        data: [35, 20, 12, 10, 8, 5, 10]
+                    },
+                    moderatorPerformance: {
+                        labels: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'],
+                        avgActions: [62, 68, 60, 65, 72],
+                        qualityScore: [98, 99.8, 96, 99, 99.9]
+                    },
+                    moderatorEfficacyTrend: {
+                        labels: ['2022', '2023', '2024', 'Proj 2025'],
+                        data: [91, 93, 95, null]
+                    },
+                    moderatorShiftActivity: {
+                        labels: ['Day Shift', 'Night Shift', 'Weekend Day', 'Weekend Night'],
+                        data: [15000, 10000, 8000, 4000]
+                    },
+                    crossPlatformViolation: {
+                        labels: ['2022', '2023', '2024', 'Proj 2025'],
+                        data: [0.8, 0.85, 0.9, null]
+                    },
+                    userRetention: {
+                        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                        data: [90, 80, 68, 58],
+                        baseline: [98, 93, 85, 75]
+                    },
+                    strategicImplications: {
+                        'Harassment': 'Long-term strategy includes continuous AI learning from new chat data. Quarterly reviews of behavioral shifts needed.',
+                        'Inappropriate Content': 'Invest in advanced content recognition. Proactive takedowns prior to widespread exposure.',
+                        'Spam / Scam': 'AI-driven detection for new scam URLs. Partnership with external security firms.',
+                        'Exploiting / Cheating': 'Dedicated red teams for vulnerability testing. Implement stronger server-side anti-cheat.',
+                        'Off-Platform Content': 'Ongoing legal and policy review for emerging communication platforms. Enhanced user education on risks.',
+                        'Other': 'Annual deep dive into miscellaneous violations to identify new systematic issues and policy gaps.'
+                    }
+                },
+                alltime: {
+                    kpi: {
+                        totalActions: 220000, averageDailyActions: 210, permanentBans: 5500, resolvedIncidentRate: 95.2,
+                        policyAdherence: 97.5, averageTimeToAct: '1.4 min', repeatOffenderRate: '8.0%',
+                        escalationRate: '6.5%', appealsOverturned: '2.8%', aiDetectionRate: '97.5%', avgReviewTime: '25 sec',
+                        incidentRecidivismRate: '21.5%', avgUserImpact: '3.15', reportVolumeGrowth: '6.0%',
+                        falsePositiveRate: '0.08%', violationDensity: '0.04'
+                    },
+                    actions: {
+                        labels: ['Warning', 'Content Deletion', 'Account Suspension', 'Permanent Ban'],
+                        data: [80000, 65000, 50000, 25000]
+                    },
+                    incidentSeverity: {
+                        labels: ['Low', 'Medium', 'High', 'Critical'],
+                        data: [75000, 65000, 50000, 30000]
+                    },
+                    appealsOutcome: {
+                        labels: ['Upheld', 'Overturned', 'Modified'],
+                        data: [94.0, 4.5, 1.5]
+                    },
+                    userReportAccuracy: {
+                        labels: ['Actionable', 'Non-Actionable'],
+                        data: [67, 33]
+                    },
+                    hourlyActivity: {
+                        labels: Array.from({length: 24}, (_, i) => `${i}:00`),
+                        data: [16, 13, 11, 10, 9, 12, 18, 26, 35, 43, 48, 55, 58, 50, 42, 37, 32, 27, 24, 22, 20, 18, 16, 14].map(val => val * 170)
+                    },
+                    dailyOfWeekActivity: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        data: [200, 215, 205, 220, 240, 185, 150]
+                    },
+                    activityTrend: {
+                        labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5', 'Proj Year 6'],
+                        actualData: [30000, 38000, 45000, 52000, null, null],
+                        projectedData: [null, null, null, null, 58000, 65000]
+                    },
+                    emergingThreats: {
+                        labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+                        data: [130, 150, 170, 190, 210]
+                    },
+                    predictiveConfidence: {
+                        labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+                        data: [89, 90.5, 92, 93.5, 95]
+                    },
+                     violationCategoryTrend: {
+                        labels: ['Y1 Q1', 'Y1 Q2', 'Y1 Q3', 'Y1 Q4', 'Y2 Q1', 'Y2 Q2', 'Y2 Q3', 'Y2 Q4', 'Y3 Q1', 'Y3 Q2', 'Y3 Q3', 'Y3 Q4'],
+                        harassment: [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100].map(val => val * 2),
+                        inappropriate: [800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200, 1250, 1300, 1350].map(val => val * 2),
+                        spam: [500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050].map(val => val * 2),
+                        exploiting: [300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 520].map(val => val * 2)
+                    },
+                    violations: {
+                        labels: ['Harassment', 'Inappropriate Content', 'Spam / Scam', 'Exploiting / Cheating', 'Off-Platform Content', 'Other'],
+                        data: [35000, 28000, 17000, 13000, 9000, 6000]
+                    },
+                    moderationSource: {
+                        labels: ['User Reports', 'Automated Detection', 'Internal Review'],
+                        data: [70000, 100000, 60000]
+                    },
+                    geographicDistribution: {
+                        labels: ['North America', 'Europe', 'Asia', 'South America', 'Africa', 'Oceania'],
+                        data: [75000, 60000, 40000, 13000, 11000, 20000]
+                    },
+                    userAgeGroupIncidents: {
+                        labels: ['<13', '13-17', '18-24', '25-34', '35+'],
+                        data: [32000, 42000, 16000, 8500, 4500]
+                    },
+                    contentTypeBreakdown: {
+                        labels: ['Chat', 'Image', 'Audio', 'Game Asset', 'Profile'],
+                        data: [37000, 27000, 13000, 10000, 6500]
+                    },
+                    appealReasonBreakdown: {
+                        labels: ['Misunderstanding Policy', 'Incorrect Action', 'Harassment Claims', 'Insufficient Evidence', 'Technical Issue', 'System Glitch', 'Policy Gap', 'Other'],
+                        data: [33, 18, 10, 8, 6, 4, 3, 18]
+                    },
+                    moderatorPerformance: {
+                        labels: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'],
+                        avgActions: [68, 73, 65, 70, 78],
+                        qualityScore: [99, 99.9, 97, 99.5, 99.99]
+                    },
+                    moderatorEfficacyTrend: {
+                        labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
+                        data: [92, 94, 96, 97, 98]
+                    },
+                    moderatorShiftActivity: {
+                        labels: ['Day Shift', 'Night Shift', 'Weekend Day', 'Weekend Night'],
+                        data: [20000, 15000, 10000, 5000]
+                    },
+                    crossPlatformViolation: {
+                        labels: ['Y1', 'Y2', 'Y3', 'Y4', 'Y5'],
+                        data: [0.9, 1.0, 1.1, 1.05, 1.2]
+                    },
+                    userRetention: {
+                        labels: ['Year 1', 'Year 2', 'Year 3'],
+                        data: [85, 70, 50],
+                        baseline: [95, 85, 70]
+                    },
+                    strategicImplications: {
+                        'Harassment': 'Continuous evolution of social interaction monitoring. Emphasis on user well-being programs.',
+                        'Inappropriate Content': 'Pioneering multimodal content understanding. International collaboration on content standards.',
+                        'Spam / Scam': 'Aggressive legal and technical countermeasures against large-scale scam operations. Global intelligence sharing.',
+                        'Exploiting / Cheating': 'Investing in cutting-edge anti-cheat technology. Proactive game design reviews for vulnerability assessment.',
+                        'Off-Platform Content': 'Establishing cross-platform policy enforcement agreements. Advanced digital fingerprinting for content tracing.',
+                        'Other': 'Holistic safety ecosystem development, focusing on adaptive policy frameworks and human expertise augmentation.'
+                    }
+                }
+            };
+
+            // Hypothetical detailed violation information
+            const violationDetails = {
+                'Harassment': {
+                    description: 'Aggressive and persistent behavior targeting individuals or groups. This includes offensive language, threats, and cyberbullying, impacting user well-being and platform integrity.',
+                    examples: [
+                        'Repeated hostile private messages.',
+                        'Coordinated in-game bullying targeting specific users.',
+                        'Discriminatory remarks against protected characteristics.',
+                        'Encouraging others to engage in targeted harassment.'
+                    ],
+                    strategicImplications: 'This is a persistent challenge. Continued investment in behavioral analytics and refining AI models for nuanced detection is crucial. Community guidelines need frequent re-communication.'
+                },
+                'Inappropriate Content': {
+                    description: 'Material deemed unsuitable for the platform\'s general audience, encompassing explicit, violent, or otherwise graphic content that violates community standards.',
+                    examples: [
+                        'Uploading or sharing obscene imagery/videos.',
+                        'Graphic descriptions of violence in chat or descriptions.',
+                        'Sexually suggestive avatars, outfits, or game environments.',
+                        'Content promoting self-harm, illegal activities, or extreme ideologies.'
+                    ],
+                    strategicImplications: 'Proactive content filtering before publication is key. Enhanced multimodal AI to analyze visual, audio, and text content simultaneously will improve early detection.'
+                },
+                'Spam / Scam': {
+                    description: 'Unsolicited, repetitive, or deceptive communications designed to mislead users, often for fraudulent gain, unapproved external promotion, or disruption.',
+                    examples: [
+                        'Flooding game chat or forums with irrelevant messages.',
+                        'Advertising external websites falsely promising free Robux or items.',
+                        'Phishing attempts to acquire account credentials or personal information.',
+                        'Spreading chain messages or pyramid schemes within the platform.'
+                    ],
+                    strategicImplications: 'Requires continuous adaptation of detection algorithms against evolving evasion tactics. User education and quick domain blacklisting are vital components of defense.'
+                },
+                'Exploiting / Cheating': {
+                    description: 'The use of unauthorized third-party software, glitches, or methods to gain an unfair advantage in games, compromising fair play and competitive balance.',
+                    examples: [
+                        'Utilizing speed hacks, noclip, or aimbots in multiplayer games.',
+                        'Exploiting game bugs to access restricted areas or duplicate items.',
+                        'Using automated scripts for unfair resource gathering or progression.',
+                        'Tampering with game files to alter gameplay mechanics.'
+                    ],
+                    strategicImplications: 'Close collaboration with game developers for rapid vulnerability patching. Server-side validation and advanced anti-cheat systems are necessary to maintain game integrity.'
+                },
+                'Off-Platform Content': {
+                    description: 'Attempts to redirect users away from the secure and moderated platform environment to external, unmoderated websites, communication channels, or social media.',
+                    examples: [
+                        'Sharing links to personal Discord servers or external chat apps.',
+                        'Directing users to unapproved social media profiles or streaming sites.',
+                        'Soliciting personal contact information (phone numbers, emails) for offline communication.',
+                        'Promoting transactions or exchanges that occur outside the platform.'
+                    ],
+                    strategicImplications: 'Strengthening internal communication tools to reduce reliance on external platforms. Proactive detection of URL patterns and rapid content removal are essential.'
+                },
+                'Other': {
+                    description: 'A comprehensive category for violations that do not fit neatly into other defined types but still contravene platform rules, often involving disruptive or general abusive behavior.',
+                    examples: [
+                        'Impersonation of platform staff, developers, or other prominent users.',
+                        'Repeated griefing or intentional disruption of other players\' gameplay.',
+                        'Misuse or abuse of the reporting system to target users unfairly.',
+                        'Creating inappropriate usernames, group names, or game titles that bypass filters.'
+                    ],
+                    strategicImplications: 'Regular review of this category is needed to identify emerging patterns that may warrant new specific policy definitions or targeted AI/ML models for detection.'
+                }
+            };
+
+            // Chart instances
+            let moderationActionsChart;
+            let incidentSeverityChart;
+            let appealsOutcomeChart;
+            let userReportAccuracyChart;
+            let hourlyActivityChart;
+            let dailyOfWeekActivityChart;
+            let activityTrendChart;
+            let emergingThreatsChart;
+            let predictiveConfidenceChart;
+            let violationCategoryTrendChart; // New chart instance
+            let contentViolationsChart;
+            let moderationSourceChart;
+            let geographicDistributionChart;
+            let userAgeGroupIncidentsChart;
+            let contentTypeBreakdownChart;
+            let appealReasonBreakdownChart; // New chart instance
+            let moderatorPerformanceChart;
+            let moderatorEfficacyTrendChart;
+            let moderatorShiftActivityChart; // New chart instance
+            let crossPlatformViolationChart; // New chart instance
+            let userRetentionChart;
+
+            // Get modal elements
+            const violationDetailModal = document.getElementById('violationDetailModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const modalViolationTitle = document.getElementById('modalViolationTitle');
+            const modalViolationDescription = document.getElementById('modalViolationDescription');
+            const modalViolationExamples = document.getElementById('modalViolationExamples');
+            const modalStrategicImplications = document.getElementById('modalStrategicImplications');
+
+            // Function to show modal
+            const showModal = (title, description, examples, strategicImplications) => {
+                modalViolationTitle.textContent = title;
+                modalViolationDescription.textContent = description;
+                modalViolationExamples.innerHTML = ''; // Clear previous examples
+                examples.forEach(example => {
+                    const li = document.createElement('li');
+                    li.textContent = example;
+                    modalViolationExamples.appendChild(li);
+                });
+                modalStrategicImplications.textContent = strategicImplications;
+                violationDetailModal.classList.add('active');
+            };
+
+            // Function to hide modal
+            const hideModal = () => {
+                violationDetailModal.classList.remove('active');
+            };
+
+            // Event listener for closing modal
+            closeModalBtn.addEventListener('click', hideModal);
+            violationDetailModal.addEventListener('click', (event) => {
+                if (event.target === violationDetailModal) { // Close when clicking outside content
+                    hideModal();
+                }
+            });
+
+            // Function to update KPI values
+            const updateKPIs = (data) => {
+                document.getElementById('kpiTotalActions').textContent = data.totalActions.toLocaleString();
+                document.getElementById('kpiTotalActionsPeriod').textContent = `Last ${data.timePeriod === 'alltime' ? 'All Time' : data.timePeriod === 'quarterly' ? 'Quarter' : data.timePeriod === 'yearly' ? 'Year' : data.timePeriod.replace('last', '').replace('days', ' Days')}`;
+
+                document.getElementById('kpiAverageDailyActions').textContent = data.averageDailyActions.toLocaleString();
+                document.getElementById('kpiAverageDailyActionsPeriod').textContent = `Last ${data.timePeriod === 'alltime' ? 'All Time' : data.timePeriod === 'quarterly' ? 'Quarter' : data.timePeriod === 'yearly' ? 'Year' : data.timePeriod.replace('last', '').replace('days', ' Days')}`;
+
+                document.getElementById('kpiPermanentBans').textContent = data.permanentBans.toLocaleString();
+                document.getElementById('kpiPermanentBansPeriod').textContent = `Last ${data.timePeriod === 'alltime' ? 'All Time' : data.timePeriod === 'quarterly' ? 'Quarter' : data.timePeriod === 'yearly' ? 'Year' : data.timePeriod.replace('last', '').replace('days', ' Days')}`;
+
+                document.getElementById('kpiResolvedRate').textContent = `${data.resolvedIncidentRate.toFixed(1)}%`;
+                document.getElementById('kpiResolvedRatePeriod').textContent = `Overall`;
+
+                document.getElementById('kpiPolicyAdherence').textContent = `${data.policyAdherence.toFixed(1)}%`;
+                document.getElementById('kpiPolicyAdherencePeriod').textContent = `Avg. Rate`;
+
+                document.getElementById('kpiAvgTimeToAct').textContent = data.averageTimeToAct;
+                document.getElementById('kpiAvgTimeToActPeriod').textContent = `Avg. Response`;
+
+                document.getElementById('kpiRepeatOffenderRate').textContent = data.repeatOffenderRate;
+                document.getElementById('kpiRepeatOffenderRatePeriod').textContent = `Avg. Rate`;
+
+                document.getElementById('kpiEscalationRate').textContent = data.escalationRate;
+                document.getElementById('kpiEscalationRatePeriod').textContent = `Avg. Rate`;
+
+                document.getElementById('kpiAppealsOverturned').textContent = data.appealsOverturned;
+                document.getElementById('kpiAppealsOverturnedPeriod').textContent = `Avg. Rate`;
+                
+                document.getElementById('kpiAIDetectionRate').textContent = data.aiDetectionRate;
+                document.getElementById('kpiAIDetectionRatePeriod').textContent = `Avg. Rate`;
+
+                document.getElementById('kpiAvgReviewTime').textContent = data.avgReviewTime;
+                document.getElementById('kpiAvgReviewTimePeriod').textContent = `Avg. Time`;
+
+                document.getElementById('kpiRecidivismRate').textContent = data.incidentRecidivismRate;
+                document.getElementById('kpiRecidivismRatePeriod').textContent = `Avg. Rate`;
+
+                document.getElementById('kpiAvgUserImpact').textContent = data.avgUserImpact;
+                document.getElementById('kpiAvgUserImpactPeriod').textContent = `Avg. Score`;
+
+                document.getElementById('kpiReportVolumeGrowth').textContent = data.reportVolumeGrowth;
+                document.getElementById('kpiReportVolumeGrowthPeriod').textContent = `Period Growth`;
+
+                document.getElementById('kpiFalsePositiveRate').textContent = data.falsePositiveRate;
+                document.getElementById('kpiFalsePositiveRatePeriod').textContent = `Avg. Rate`;
+
+                document.getElementById('kpiViolationDensity').textContent = data.violationDensity;
+                document.getElementById('kpiViolationDensityPeriod').textContent = `Per 1000 Users`;
+            };
+
+            // Function to render/update charts and KPIs
+            const renderDashboard = (timeRange) => {
+                const dataSet = allData[timeRange];
+                if (!dataSet) {
+                    console.error('Invalid time range:', timeRange);
+                    return;
+                }
+
+                // Update KPI values
+                updateKPIs({ ...dataSet.kpi, timePeriod: timeRange });
+
+                // Update Moderation Actions by Type Chart
+                if (moderationActionsChart) {
+                    moderationActionsChart.data.labels = dataSet.actions.labels;
+                    moderationActionsChart.data.datasets[0].data = dataSet.actions.data;
+                    moderationActionsChart.update();
+                }
+
+                // Update Incident Severity Chart
+                if (incidentSeverityChart) {
+                    incidentSeverityChart.data.labels = dataSet.incidentSeverity.labels;
+                    incidentSeverityChart.data.datasets[0].data = dataSet.incidentSeverity.data;
+                    incidentSeverityChart.update();
+                }
+
+                // Update Appeals Outcome Chart
+                if (appealsOutcomeChart) {
+                    appealsOutcomeChart.data.labels = dataSet.appealsOutcome.labels;
+                    appealsOutcomeChart.data.datasets[0].data = dataSet.appealsOutcome.data;
+                    appealsOutcomeChart.update();
+                }
+
+                // Update User Report Accuracy Chart
+                if (userReportAccuracyChart) {
+                    userReportAccuracyChart.data.labels = dataSet.userReportAccuracy.labels;
+                    userReportAccuracyChart.data.datasets[0].data = dataSet.userReportAccuracy.data;
+                    userReportAccuracyChart.update();
+                }
+
+                // Update Hourly Activity Chart
+                if (hourlyActivityChart) {
+                    hourlyActivityChart.data.labels = dataSet.hourlyActivity.labels;
+                    hourlyActivityChart.data.datasets[0].data = dataSet.hourlyActivity.data;
+                    hourlyActivityChart.update();
+                }
+
+                // Update Daily of Week Activity Chart
+                if (dailyOfWeekActivityChart) {
+                    dailyOfWeekActivityChart.data.labels = dataSet.dailyOfWeekActivity.labels;
+                    dailyOfWeekActivityChart.data.datasets[0].data = dataSet.dailyOfWeekActivity.data;
+                    dailyOfWeekActivityChart.update();
+                }
+
+                // Update Activity Trend Chart (Daily/Monthly/Yearly)
+                if (activityTrendChart) {
+                    activityTrendChart.data.labels = dataSet.activityTrend.labels;
+                    activityTrendChart.data.datasets[0].data = dataSet.activityTrend.actualData;
+                    activityTrendChart.data.datasets[1].data = dataSet.activityTrend.projectedData;
+                    activityTrendChart.update();
+                }
+
+                // Update Emerging Threats Chart
+                if (emergingThreatsChart) {
+                    emergingThreatsChart.data.labels = dataSet.emergingThreats.labels;
+                    emergingThreatsChart.data.datasets[0].data = dataSet.emergingThreats.data;
+                    emergingThreatsChart.update();
+                }
+
+                // Update Predictive Confidence Chart
+                if (predictiveConfidenceChart) {
+                    predictiveConfidenceChart.data.labels = dataSet.predictiveConfidence.labels;
+                    predictiveConfidenceChart.data.datasets[0].data = dataSet.predictiveConfidence.data;
+                    predictiveConfidenceChart.update();
+                }
+
+                // Update Policy Violation Trend by Category Chart
+                if (violationCategoryTrendChart) {
+                    violationCategoryTrendChart.data.labels = dataSet.violationCategoryTrend.labels;
+                    violationCategoryTrendChart.data.datasets[0].data = dataSet.violationCategoryTrend.harassment;
+                    violationCategoryTrendChart.data.datasets[1].data = dataSet.violationCategoryTrend.inappropriate;
+                    violationCategoryTrendChart.data.datasets[2].data = dataSet.violationCategoryTrend.spam;
+                    violationCategoryTrendChart.data.datasets[3].data = dataSet.violationCategoryTrend.exploiting;
+                    violationCategoryTrendChart.update();
+                }
+
+                // Update Donut Chart (Content Violation Types)
+                if (contentViolationsChart) {
+                    contentViolationsChart.data.labels = dataSet.violations.labels;
+                    contentViolationsChart.data.datasets[0].data = dataSet.violations.data;
+                    contentViolationsChart.update();
+                }
+
+                // Update Moderation Source Breakdown Chart
+                if (moderationSourceChart) {
+                    moderationSourceChart.data.labels = dataSet.moderationSource.labels;
+                    moderationSourceChart.data.datasets[0].data = dataSet.moderationSource.data;
+                    moderationSourceChart.update();
+                }
+
+                // Update Geographic Distribution Chart
+                if (geographicDistributionChart) {
+                    geographicDistributionChart.data.labels = dataSet.geographicDistribution.labels;
+                    geographicDistributionChart.data.datasets[0].data = dataSet.geographicDistribution.data;
+                    geographicDistributionChart.update();
+                }
+
+                // Update User Age Group Incident Distribution Chart
+                if (userAgeGroupIncidentsChart) {
+                    userAgeGroupIncidentsChart.data.labels = dataSet.userAgeGroupIncidents.labels;
+                    userAgeGroupIncidentsChart.data.datasets[0].data = dataSet.userAgeGroupIncidents.data;
+                    userAgeGroupIncidentsChart.update();
+                }
+
+                // Update Content Type Incident Breakdown Chart
+                if (contentTypeBreakdownChart) {
+                    contentTypeBreakdownChart.data.labels = dataSet.contentTypeBreakdown.labels;
+                    contentTypeBreakdownChart.data.datasets[0].data = dataSet.contentTypeBreakdown.data;
+                    contentTypeBreakdownChart.update();
+                }
+
+                // Update Appeal Reason Breakdown Chart
+                if (appealReasonBreakdownChart) {
+                    appealReasonBreakdownChart.data.labels = dataSet.appealReasonBreakdown.labels;
+                    appealReasonBreakdownChart.data.datasets[0].data = dataSet.appealReasonBreakdown.data;
+                    appealReasonBreakdownChart.update();
+                }
+
+                // Update Moderator Performance Chart
+                if (moderatorPerformanceChart) {
+                    moderatorPerformanceChart.data.labels = dataSet.moderatorPerformance.labels;
+                    moderatorPerformanceChart.data.datasets[0].data = dataSet.moderatorPerformance.avgActions;
+                    moderatorPerformanceChart.data.datasets[1].data = dataSet.moderatorPerformance.qualityScore;
+                    moderatorPerformanceChart.update();
+                }
+
+                // Update Moderator Efficacy Trend Chart
+                if (moderatorEfficacyTrendChart) {
+                    moderatorEfficacyTrendChart.data.labels = dataSet.moderatorEfficacyTrend.labels;
+                    moderatorEfficacyTrendChart.data.datasets[0].data = dataSet.moderatorEfficacyTrend.data;
+                    moderatorEfficacyTrendChart.update();
+                }
+
+                // Update Moderator Activity by Shift Chart
+                if (moderatorShiftActivityChart) {
+                    moderatorShiftActivityChart.data.labels = dataSet.moderatorShiftActivity.labels;
+                    moderatorShiftActivityChart.data.datasets[0].data = dataSet.moderatorShiftActivity.data;
+                    moderatorShiftActivityChart.update();
+                }
+
+                // Update Cross-Platform Violation Rate Chart
+                if (crossPlatformViolationChart) {
+                    crossPlatformViolationChart.data.labels = dataSet.crossPlatformViolation.labels;
+                    crossPlatformViolationChart.data.datasets[0].data = dataSet.crossPlatformViolation.data;
+                    crossPlatformViolationChart.update();
+                }
+
+                // Update User Retention Chart
+                if (userRetentionChart) {
+                    userRetentionChart.data.labels = dataSet.userRetention.labels;
+                    userRetentionChart.data.datasets[0].data = dataSet.userRetention.data;
+                    userRetentionChart.data.datasets[1].data = dataSet.userRetention.baseline;
+                    userRetentionChart.update();
+                }
+            };
+
+            // Chart.js Common Options for Dark Theme
+            const commonChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 15, 15, 0.995)', /* Darker tooltip background */
+                        titleColor: '#00e676', /* Emerald green for tooltip titles */
+                        bodyColor: '#e8e8e8',
+                        borderColor: '#00e676',
+                        borderWidth: 2,
+                        cornerRadius: 18, /* More rounded tooltips */
+                        displayColors: true, /* Show color box in tooltip */
+                        titleFont: { size: 20, weight: '900' }, /* Larger, bolder title */
+                        bodyFont: { size: 18, weight: '700' }, /* Slightly larger body text */
+                        padding: 25, /* More padding */
+                    },
+                    legend: {
+                        labels: {
+                            color: '#e8e8e8', /* Light text for legends */
+                            font: { size: 18, weight: '800' }, /* Slightly larger, bolder legends */
+                            boxWidth: 30, /* Larger color box */
+                            padding: 30, /* More space between legend items */
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(70, 70, 70, 0.8)', /* Subtle dark grid lines */
+                            drawBorder: false,
+                        },
+                        ticks: {
+                            color: '#c8c8c8', /* Grey text for axis labels */
+                            font: { size: 18, weight: '600' }
+                        },
+                        title: {
+                            display: false,
+                            color: '#c8c8c8',
+                            font: { size: 19, weight: '700' }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(70, 70, 70, 0.8)',
+                            drawBorder: false,
+                        },
+                        ticks: {
+                            color: '#c8c8c8',
+                            font: { size: 18, weight: '600' },
+                            callback: function(value) { return value.toLocaleString(); }
+                        },
+                        title: {
+                            display: false,
+                            color: '#c8c8c8',
+                            font: { size: 19, weight: '700' }
+                        }
+                    }
+                }
+            };
+
+            // Chart Configurations
+            const actionsConfig = {
+                type: 'bar',
+                data: { labels: [], datasets: [{ label: 'Number of Actions', data: [],
+                    backgroundColor: [
+                        'rgba(76, 175, 80, 0.99)',   /* Green */
+                        'rgba(255, 159, 64, 0.99)',  /* Orange */
+                        'rgba(255, 99, 132, 0.99)',  /* Red */
+                        'rgba(153, 102, 255, 0.99)'  /* Purple */
+                    ],
+                    borderColor: [
+                        'rgba(76, 175, 80, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 3.5, borderRadius: 18 }] },
+                options: {
+                    ...commonChartOptions,
+                    plugins: { ...commonChartOptions.plugins, legend: { display: false } }
+                },
+            };
+
+            const incidentSeverityConfig = {
+                type: 'polarArea',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Incident Count',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.99)', /* Emerald (Low) */
+                            'rgba(59, 130, 246, 0.99)', /* Blue (Medium) */
+                            'rgba(245, 158, 11, 0.99)', /* Amber (High) */
+                            'rgba(239, 68, 68, 0.99)'   /* Red (Critical) */
+                        ],
+                        borderColor: '#080808', /* Matches container background */
+                        borderWidth: 6,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    },
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        legend: {
+                            position: 'right',
+                            align: 'center',
+                            labels: { color: '#e8e8e8', font: { size: 17, weight: '700' }, boxWidth: 22, padding: 20 }
+                        },
+                        tooltip: {
+                            ...commonChartOptions.plugins.tooltip,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed.r;
+                                    const total = context.dataset.data.reduce((acc, current) => acc + current, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1) + '%';
+                                    return `${label}: ${value.toLocaleString()} (${percentage})`;
+                                }
+                            }
+                        }
+                    },
+                    elements: {
+                        arc: {
+                            borderColor: '#080808'
+                        }
+                    }
+                },
+            };
+
+            const appealsOutcomeConfig = {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Outcome Percentage',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(76, 175, 80, 0.99)',   /* Green (Upheld) */
+                            'rgba(239, 68, 68, 0.99)',   /* Red (Overturned) */
+                            'rgba(59, 130, 246, 0.99)'    /* Blue (Modified) */
+                        ],
+                        borderColor: '#080808',
+                        borderWidth: 4.5,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: { x: { display: false }, y: { display: false } },
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        tooltip: {
+                            ...commonChartOptions.plugins.tooltip,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    return `${label}${context.parsed.toFixed(1)}%`;
+                                }
+                            }
+                        }
+                    }
+                },
+            };
+
+            const userReportAccuracyConfig = {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Report Accuracy',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(0, 230, 118, 0.99)', /* Emerald (Actionable) */
+                            'rgba(140, 140, 140, 0.99)' /* Grey (Non-Actionable) */
+                        ],
+                        borderColor: '#080808',
+                        borderWidth: 4.5,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: { x: { display: false }, y: { display: false } },
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        tooltip: {
+                            ...commonChartOptions.plugins.tooltip,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    return `${label}${context.parsed.toFixed(1)}%`;
+                                }
+                            }
+                        }
+                    }
+                },
+            };
+
+
+            const hourlyActivityConfig = {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Avg. Actions per Hour',
+                        data: [],
+                        backgroundColor: 'rgba(52, 211, 153, 0.99)',
+                        borderColor: 'rgba(52, 211, 153, 1)',
+                        borderWidth: 2.5,
+                        borderRadius: 15,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: { ...commonChartOptions.plugins, legend: { display: false } },
+                    scales: {
+                        x: {
+                            ...commonChartOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Hour of Day (24-hour format)',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        },
+                        y: {
+                            ...commonChartOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Average Actions',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        }
+                    }
+                },
+            };
+
+            const dailyOfWeekActivityConfig = {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Avg. Actions per Day',
+                        data: [],
+                        backgroundColor: 'rgba(99, 179, 237, 0.99)',
+                        borderColor: 'rgba(99, 179, 237, 1)',
+                        borderWidth: 2.5,
+                        borderRadius: 15,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: { ...commonChartOptions.plugins, legend: { display: false } },
+                    scales: {
+                        x: {
+                            ...commonChartOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Day of Week',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        },
+                        y: {
+                            ...commonChartOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Average Actions',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        }
+                    }
+                },
+            };
+
+            const activityTrendConfig = {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Actual Actions',
+                        data: [],
+                        fill: false,
+                        borderColor: '#00e676',
+                        backgroundColor: 'rgba(0, 230, 118, 0.6)',
+                        tension: 0.4,
+                        borderWidth: 4.5,
+                        pointRadius: 8,
+                        pointBackgroundColor: '#00e676',
+                        pointBorderColor: '#080808',
+                        pointHoverRadius: 10,
+                        pointBorderWidth: 3.5,
+                    },
+                    {
+                        label: 'Projected Actions',
+                        data: [],
+                        fill: false,
+                        borderColor: '#FFD700',
+                        backgroundColor: 'rgba(255, 215, 0, 0.5)',
+                        borderDash: [18, 9],
+                        tension: 0.4,
+                        borderWidth: 3.5,
+                        pointRadius: 8,
+                        pointBackgroundColor: '#FFD700',
+                        pointBorderColor: '#080808',
+                        pointHoverRadius: 10,
+                        pointBorderWidth: 3.5,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                color: '#e8e8e8',
+                                font: { size: 18, weight: '700' },
+                                boxWidth: 30,
+                                padding: 28,
+                            }
+                        }
+                    }
+                },
+            };
+
+            const emergingThreatsConfig = {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'New Threat Incidents',
+                        data: [],
+                        fill: true,
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168, 85, 247, 0.6)',
+                        tension: 0.4,
+                        borderWidth: 4.5,
+                        pointRadius: 8,
+                        pointBackgroundColor: '#a855f7',
+                        pointBorderColor: '#080808',
+                        pointHoverRadius: 10,
+                        pointBorderWidth: 3.5,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: { ...commonChartOptions.plugins, legend: { display: false } },
+                    scales: {
+                        x: {
+                            ...commonChartOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Time Period',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        },
+                        y: {
+                            ...commonChartOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Count of New Threats',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            },
+                             ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                },
+            };
+
+            const predictiveConfidenceConfig = {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'AI Model Confidence (%)',
+                        data: [],
+                        fill: false,
+                        borderColor: '#FF9800',
+                        backgroundColor: 'rgba(255, 152, 0, 0.5)',
+                        tension: 0.4,
+                        borderWidth: 4.5,
+                        pointRadius: 8,
+                        pointBackgroundColor: '#FF9800',
+                        pointBorderColor: '#080808',
+                        pointHoverRadius: 10,
+                        pointBorderWidth: 3.5,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: { ...commonChartOptions.plugins, legend: { display: false } },
+                    scales: {
+                        x: {
+                            ...commonChartOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Time Period',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        },
+                        y: {
+                            ...commonChartOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Confidence Score (%)',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            },
+                            max: 100,
+                            ticks: {
+                                callback: function(value) { return `${value}%`; }
+                            }
+                        }
+                    }
+                },
+            };
+
+            // New: Policy Violation Trend by Category (Stacked Area Chart)
+            const violationCategoryTrendConfig = {
+                type: 'line', // Changed to line with fill for stacked area effect
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Harassment',
+                        data: [],
+                        backgroundColor: 'rgba(239, 68, 68, 0.6)', /* Red */
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        fill: 'stack', // Important for stacked area
+                        tension: 0.4,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Inappropriate Content',
+                        data: [],
+                        backgroundColor: 'rgba(59, 130, 246, 0.6)', /* Blue */
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        fill: 'stack',
+                        tension: 0.4,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Spam / Scam',
+                        data: [],
+                        backgroundColor: 'rgba(245, 158, 11, 0.6)', /* Amber */
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        fill: 'stack',
+                        tension: 0.4,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Exploiting / Cheating',
+                        data: [],
+                        backgroundColor: 'rgba(16, 185, 129, 0.6)', /* Emerald */
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        fill: 'stack',
+                        tension: 0.4,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#e8e8e8',
+                                font: { size: 16, weight: '700' },
+                                boxWidth: 25,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index', // Show sum of values in tooltip
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    return `${label}${context.parsed.y.toLocaleString()}`;
+                                },
+                                title: function(context) {
+                                    return `Total on ${context[0].label}: ${context.reduce((sum, current) => sum + current.parsed.y, 0).toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true, // Crucial for stacked area
+                            ...commonChartOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Time Period',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        },
+                        y: {
+                            stacked: true, // Crucial for stacked area
+                            ...commonChartOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Incident Count',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        }
+                    }
+                },
+            };
+
+
+            const violationsConfig = {
+                type: 'doughnut',
+                data: { labels: [], datasets: [{ label: 'Violations', data: [],
+                    backgroundColor: [
+                        '#ef4444', /* Red (Harassment) */
+                        '#3b82f6', /* Blue (Inappropriate) */
+                        '#f59e0b', /* Amber (Spam/Scam) */
+                        '#10b981', /* Emerald (Exploiting) */
+                        '#a855f7', /* Purple (Off-Platform) */
+                        '#6b7280'  /* Gray (Other) */
+                    ],
+                    borderColor: '#080808',
+                    borderWidth: 4.5, }] },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        legend: {
+                            position: 'right',
+                            align: 'center',
+                            labels: { color: '#e8e8e8', font: { size: 17, weight: '700' }, boxWidth: 22, padding: 20 }
+                        },
+                        tooltip: {
+                             ...commonChartOptions.plugins.tooltip,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((acc, current) => acc + current, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1) + '%';
+                                    return `${label}: ${value.toLocaleString()} (${percentage})`;
+                                }
+                            }
+                        }
+                    },
+                    scales: { x: { display: false }, y: { display: false } },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const clickedElementIndex = elements[0].index;
+                            const label = contentViolationsChart.data.labels[clickedElementIndex];
+                            const details = violationDetails[label];
+                            if (details) {
+                                showModal(label, details.description, details.examples, details.strategicImplications);
+                            }
+                        }
+                    }
+                },
+            };
+
+            const moderationSourceConfig = {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Number of Actions',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(99, 179, 237, 0.99)', /* Light Blue */
+                            'rgba(76, 175, 80, 0.99)',  /* Green */
+                            'rgba(163, 113, 247, 0.99)' /* Purple */
+                        ],
+                        borderColor: [
+                            'rgba(99, 179, 237, 1)',
+                            'rgba(76, 175, 80, 1)',
+                            'rgba(163, 113, 247, 1)'
+                        ],
+                        borderWidth: 3,
+                        borderRadius: 15,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: { ...commonChartOptions.plugins, legend: { display: false } }
+                },
+            };
+
+            const geographicDistributionConfig = {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Incident Count',
+                        data: [],
+                        backgroundColor: 'rgba(255, 105, 180, 0.99)',
+                        borderColor: 'rgba(255, 105, 180, 1)',
+                        borderWidth: 3,
+                        borderRadius: 15,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    indexAxis: 'y',
+                    plugins: { ...commonChartOptions.plugins, legend: { display: false } },
+                    scales: {
+                        x: {
+                            ...commonChartOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Incident Count',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            },
+                        },
+                        y: {
+                            ...commonChartOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Region',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        }
+                    }
+                },
+            };
+
+            const userAgeGroupIncidentsConfig = {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Incident Count',
+                        data: [],
+                        backgroundColor: 'rgba(255, 206, 86, 0.99)', /* Gold */
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        borderWidth: 3,
+                        borderRadius: 15,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: { ...commonChartOptions.plugins, legend: { display: false } },
+                    scales: {
+                        x: {
+                            ...commonChartOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Age Group',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        },
+                        y: {
+                            ...commonChartOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Incident Count',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        }
+                    }
+                },
+            };
+
+            const contentTypeBreakdownConfig = {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Incident Count',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.99)', /* Teal */
+                            'rgba(153, 102, 255, 0.99)', /* Purple */
+                            'rgba(255, 99, 132, 0.99)', /* Pink/Red */
+                            'rgba(255, 159, 64, 0.99)', /* Orange */
+                            'rgba(54, 162, 235, 0.99)'  /* Blue */
+                        ],
+                        borderColor: '#080808',
+                        borderWidth: 4.5,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: { x: { display: false }, y: { display: false } },
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        tooltip: {
+                            ...commonChartOptions.plugins.tooltip,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((acc, current) => acc + current, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1) + '%';
+                                    return `${label}: ${value.toLocaleString()} (${percentage})`;
+                                }
+                            }
+                        }
+                    }
+                },
+            };
+
+            // New: Appeal Reason Breakdown Chart Config
+            const appealReasonBreakdownConfig = {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Appeal Reasons',
+                        data: [],
+                        backgroundColor: [
+                            'rgba(255, 152, 0, 0.98)',   /* Orange */
+                            'rgba(239, 68, 68, 0.98)',   /* Red */
+                            'rgba(59, 130, 246, 0.98)',  /* Blue */
+                            'rgba(16, 185, 129, 0.98)',  /* Emerald */
+                            'rgba(147, 51, 234, 0.98)',  /* Deep Purple */
+                            'rgba(255, 99, 132, 0.98)', /* Pink */
+                            'rgba(100, 100, 100, 0.98)' /* Dark Gray */
+                        ],
+                        borderColor: '#080808',
+                        borderWidth: 4.5,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: { x: { display: false }, y: { display: false } },
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        tooltip: {
+                            ...commonChartOptions.plugins.tooltip,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    return `${label}${context.parsed.toFixed(1)}%`;
+                                }
+                            }
+                        }
+                    }
+                },
+            };
+
+
+            const moderatorPerformanceConfig = {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Avg Actions/Hour',
+                        data: [],
+                        backgroundColor: 'rgba(255, 215, 0, 0.99)', /* Gold */
+                        borderColor: 'rgba(255, 215, 0, 1)',
+                        borderWidth: 3,
+                        borderRadius: 15,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Quality Score (%)',
+                        data: [],
+                        backgroundColor: 'rgba(147, 51, 234, 0.99)', /* Deep Purple */
+                        borderColor: 'rgba(147, 51, 234, 1)',
+                        borderWidth: 3,
+                        borderRadius: 15,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    scales: {
+                        x: {
+                            ...commonChartOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Moderator (Hypothetical)',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        },
+                        y: {
+                            ...commonChartOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Average Actions/Hour',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            },
+                             ticks: {
+                                callback: function(value) { return value; }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: {
+                                drawOnChartArea: false,
+                                color: 'rgba(70, 70, 70, 0.8)',
+                            },
+                            ticks: {
+                                color: '#c8c8c8',
+                                font: { size: 18, weight: '600' },
+                                callback: function(value) { return `${value}%`; }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Quality Score (%)',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            },
+                            max: 100
+                        }
+                    }
+                },
+            };
+
+            const moderatorEfficacyTrendConfig = {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Overall Efficacy Score',
+                        data: [],
+                        fill: false,
+                        borderColor: '#39FF14', /* Neon Green */
+                        backgroundColor: 'rgba(57, 255, 20, 0.5)',
+                        tension: 0.4,
+                        borderWidth: 4.5,
+                        pointRadius: 8,
+                        pointBackgroundColor: '#39FF14',
+                        pointBorderColor: '#080808',
+                        pointHoverRadius: 10,
+                        pointBorderWidth: 3.5,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: { ...commonChartOptions.plugins, legend: { display: false } },
+                    scales: {
+                        x: {
+                            ...commonChartOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Time Period',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        },
+                        y: {
+                            ...commonChartOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Efficacy Score (%)',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            },
+                            max: 100,
+                            ticks: {
+                                callback: function(value) { return `${value}%`; }
+                            }
+                        }
+                    }
+                },
+            };
+
+            // New: Moderator Activity by Shift (Conceptual Bar Chart)
+            const moderatorShiftActivityConfig = {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Average Actions',
+                        data: [],
+                        backgroundColor: 'rgba(0, 150, 136, 0.99)', /* Dark Teal */
+                        borderColor: 'rgba(0, 150, 136, 1)',
+                        borderWidth: 3,
+                        borderRadius: 15,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: { ...commonChartOptions.plugins, legend: { display: false } },
+                    scales: {
+                        x: {
+                            ...commonChartOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Shift Type',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        },
+                        y: {
+                            ...commonChartOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Average Actions',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        }
+                    }
+                },
+            };
+
+            // New: Cross-Platform Violation Rate (Conceptual Line Chart)
+            const crossPlatformViolationConfig = {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Cross-Platform Rate (%)',
+                        data: [],
+                        fill: false,
+                        borderColor: '#f44336', /* Material Red */
+                        backgroundColor: 'rgba(244, 67, 54, 0.5)',
+                        tension: 0.4,
+                        borderWidth: 4.5,
+                        pointRadius: 8,
+                        pointBackgroundColor: '#f44336',
+                        pointBorderColor: '#080808',
+                        pointHoverRadius: 10,
+                        pointBorderWidth: 3.5,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: { ...commonChartOptions.plugins, legend: { display: false } },
+                    scales: {
+                        x: {
+                            ...commonChartOptions.scales.x,
+                            title: {
+                                display: true,
+                                text: 'Time Period',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            }
+                        },
+                        y: {
+                            ...commonChartOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Rate (%)',
+                                color: '#c8c8c8',
+                                font: { size: 19, weight: '700' }
+                            },
+                            ticks: {
+                                callback: function(value) { return `${value.toFixed(1)}%`; }
+                            }
+                        }
+                    }
+                },
+            };
+
+
+            const userRetentionConfig = {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Moderated User Retention (%)',
+                        data: [],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.5)',
+                        fill: false,
+                        tension: 0.4,
+                        borderWidth: 4.5,
+                        pointRadius: 8,
+                        pointBackgroundColor: '#ef4444',
+                        pointBorderColor: '#080808',
+                        pointHoverRadius: 10,
+                        pointBorderWidth: 3.5,
+                    },
+                    {
+                        label: 'Baseline Retention (%)',
+                        data: [],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                        fill: false,
+                        tension: 0.4,
+                        borderWidth: 4.5,
+                        pointRadius: 8,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#080808',
+                        pointHoverRadius: 10,
+                        pointBorderWidth: 3.5,
+                    }]
+                },
+                options: {
+                    ...commonChartOptions,
+                    plugins: {
+                        ...commonChartOptions.plugins,
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: { color: '#e8e8e8', font: { size: 18, weight: '700' }, boxWidth: 30, padding: 28 }
+                        },
+                        tooltip: {
+                             ...commonChartOptions.plugins.tooltip,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += `${context.parsed.y.toFixed(1)}%`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { ...commonChartOptions.scales.x },
+                        y: { ...commonChartOptions.scales.y, max: 100, ticks: { ...commonChartOptions.scales.y.ticks, callback: function(value) { return `${value}%`; } } }
+                    }
+                },
+            };
+
+
+            // Initialize all charts
+            moderationActionsChart = new Chart(document.getElementById('moderationActionsChart').getContext('2d'), actionsConfig);
+            incidentSeverityChart = new Chart(document.getElementById('incidentSeverityChart').getContext('2d'), incidentSeverityConfig);
+            appealsOutcomeChart = new Chart(document.getElementById('appealsOutcomeChart').getContext('2d'), appealsOutcomeConfig);
+            userReportAccuracyChart = new Chart(document.getElementById('userReportAccuracyChart').getContext('2d'), userReportAccuracyConfig);
+            hourlyActivityChart = new Chart(document.getElementById('hourlyActivityChart').getContext('2d'), hourlyActivityConfig);
+            dailyOfWeekActivityChart = new Chart(document.getElementById('dailyOfWeekActivityChart').getContext('2d'), dailyOfWeekActivityConfig);
+            activityTrendChart = new Chart(document.getElementById('activityTrendChart').getContext('2d'), activityTrendConfig);
+            emergingThreatsChart = new Chart(document.getElementById('emergingThreatsChart').getContext('2d'), emergingThreatsConfig);
+            predictiveConfidenceChart = new Chart(document.getElementById('predictiveConfidenceChart').getContext('2d'), predictiveConfidenceConfig);
+            violationCategoryTrendChart = new Chart(document.getElementById('violationCategoryTrendChart').getContext('2d'), violationCategoryTrendConfig); // Initialize new chart
+            contentViolationsChart = new Chart(document.getElementById('contentViolationsChart').getContext('2d'), violationsConfig);
+            moderationSourceChart = new Chart(document.getElementById('moderationSourceChart').getContext('2d'), moderationSourceConfig);
+            geographicDistributionChart = new Chart(document.getElementById('geographicDistributionChart').getContext('2d'), geographicDistributionConfig);
+            userAgeGroupIncidentsChart = new Chart(document.getElementById('userAgeGroupIncidentsChart').getContext('2d'), userAgeGroupIncidentsConfig);
+            contentTypeBreakdownChart = new Chart(document.getElementById('contentTypeBreakdownChart').getContext('2d'), contentTypeBreakdownConfig);
+            appealReasonBreakdownChart = new Chart(document.getElementById('appealReasonBreakdownChart').getContext('2d'), appealReasonBreakdownConfig); // Initialize new chart
+            moderatorPerformanceChart = new Chart(document.getElementById('moderatorPerformanceChart').getContext('2d'), moderatorPerformanceConfig);
+            moderatorEfficacyTrendChart = new Chart(document.getElementById('moderatorEfficacyTrendChart').getContext('2d'), moderatorEfficacyTrendConfig);
+            moderatorShiftActivityChart = new Chart(document.getElementById('moderatorShiftActivityChart').getContext('2d'), moderatorShiftActivityConfig); // Initialize new chart
+            crossPlatformViolationChart = new Chart(document.getElementById('crossPlatformViolationChart').getContext('2d'), crossPlatformViolationConfig); // Initialize new chart
+            userRetentionChart = new Chart(document.getElementById('userRetentionChart').getContext('2d'), userRetentionConfig);
+
+
+            // Add Event Listeners for Time Filter Buttons
+            const timeFilterButtons = document.querySelectorAll('.time-filter-btn');
+            timeFilterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    timeFilterButtons.forEach(btn => btn.classList.remove('active'));
+                    // Add active class to the clicked button
+                    button.classList.add('active');
+                    const timeRange = button.dataset.timeRange;
+                    renderDashboard(timeRange);
+                });
+            });
+
+            // Initial render with default time range (Last 30 Days)
+            renderDashboard('last30days');
+        });
+    </script>
+</body>
+</html>
