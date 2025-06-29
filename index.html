@@ -3,56 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Moderation Analytics Dashboard - Elite Executive Edition (Stabilized)</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Roblox Moderation Analytics Dashboard </title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts - Inter for a clean, professional look -->
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Chart.js CDN -->
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Custom scrollbar for real-time feed */
+
         ::-webkit-scrollbar {
             width: 8px;
-            height: 8px; /* For horizontal scrollbars */
+            height: 8px; 
         }
 
         ::-webkit-scrollbar-track {
-            background: #2a2a2a; /* Dark track */
+            background: #2a2a2a; 
             border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #4a4a4a; /* Darker thumb */
+            background: #4a4a4a; 
             border-radius: 10px;
             transition: background 0.3s ease;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #6a6a6a; /* Lighter thumb on hover */
+            background: #6a6a6a; 
         }
 
-        /* Base Body and Container Styles */
+        
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(180deg, #000000 0%, #050505 100%); /* Deepest, most immersive background */
-            color: #F8FAFC; /* Near white text color for high readability */
+            background: linear-gradient(180deg, #000000 0%, #050505 100%); /
+            color: #F8FAFC; 
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 30px 20px; /* Adjusted padding for better screen coverage on smaller devices, but still ample on large */
+            padding: 30px 20px; 
             box-sizing: border-box;
         }
         .container {
-            background-color: #080808; /* Even darker charcoal for main content areas */
-            border-radius: 35px; /* Even more rounded corners for a premium feel */
-            padding: 70px; /* Generous padding inside the container */
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.98), 0 80px 220px rgba(0, 0, 0, 0.85); /* Deeper, more pronounced shadow */
-            max-width: 1500px; /* Even wider for better chart presentation */
+            background-color: #080808; 
+            border-radius: 35px; 
+            padding: 70px; 
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.98), 0 80px 220px rgba(0, 0, 0, 0.85); 
+            max-width: 1500px; 
             width: 100%;
             margin-top: 40px;
-            border: 1px solid #151515; /* Thicker, more distinct border */
+            border: 1px solid #151515; 
         }
 
         /* Dashboard Header */
@@ -63,20 +63,20 @@
             margin-bottom: 60px;
             border-bottom: 2px solid #202020;
             padding-bottom: 40px;
-            width: 100%; /* Ensure header spans full width of container */
+            width: 100%; 
         }
         .dashboard-header h1 {
-            font-size: 5.8rem; /* Even larger, more impactful main title */
-            font-weight: 900; /* Extra bold */
-            color: #00e676; /* Vibrant emerald green for primary accents */
-            text-align: left; /* Align to left in header */
+            font-size: 5.8rem; 
+            font-weight: 900; 
+            color: #00e676; 
+            text-align: left; 
             margin-bottom: 0;
-            letter-spacing: -0.09em; /* Tighter letter spacing */
-            text-shadow: 0 0 30px rgba(0, 230, 118, 1); /* More prominent glow for prominence */
+            letter-spacing: -0.09em; 
+            text-shadow: 0 0 30px rgba(0, 230, 118, 1); 
         }
         .platform-status-group {
             display: flex;
-            gap: 30px; /* Space between status indicators */
+            gap: 30px; 
         }
         .platform-status {
             display: flex;
@@ -99,7 +99,7 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background-color: #00e676; /* Green for operational */
+            background-color: #00e676; 
             box-shadow: 0 0 18px rgba(0, 230, 118, 1.2);
             margin-right: 20px;
             animation: pulse 2s infinite ease-in-out;
@@ -115,58 +115,58 @@
         }
 
         p {
-            font-size: 1.15rem; /* Standard paragraph text size */
+            font-size: 1.15rem; 
             line-height: 2;
             margin-bottom: 25px;
-            color: #c0c0c0; /* Softer grey for body text */
+            color: #c0c0c0; 
         }
 
         /* Chart Section Styles */
         .chart-section {
-            background-color: #101010; /* Darker background for individual chart cards */
-            border-radius: 28px; /* Consistent rounding */
-            padding: 60px; /* Generous padding within chart sections */
-            margin-bottom: 65px; /* Space between chart sections */
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9); /* Defined shadow for chart cards */
+            background-color: #101010; 
+            border-radius: 28px; 
+            padding: 60px;
+            margin-bottom: 65px; 
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9); 
             display: flex;
             flex-direction: column;
             align-items: center;
-            border: 1px solid #202020; /* Subtle border for chart cards */
+            border: 1px solid #202020; 
             transition: transform 0.4s ease, box-shadow 0.4s ease;
         }
         .chart-section:hover {
             transform: translateY(-15px);
-            box-shadow: 0 35px 80px rgba(0, 230, 118, 0.5); /* Subtle glow on hover */
+            box-shadow: 0 35px 80px rgba(0, 230, 118, 0.5);
         }
         .chart-section h2 {
-            font-size: 3.8rem; /* Prominent chart titles */
+            font-size: 3.8rem;
             font-weight: 900;
-            color: #4CAF50; /* A friendly green color for chart titles */
+            color: #4CAF50; 
             margin-bottom: 45px;
             text-align: center;
-            text-shadow: 0 0 20px rgba(76, 175, 80, 0.8); /* Subtle glow for titles */
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.8); 
         }
         canvas {
             max-width: 100%;
-            height: auto; /* Ensure canvas scales its height proportionally */
-            background-color: #101010; /* Ensure chart canvas background matches section */
-            border-radius: 25px; /* Match section rounding */
+            height: auto; 
+            background-color: #101010; 
+            border-radius: 25px; 
         }
         .chart-container {
             position: relative;
             width: 100%;
-            min-height: 400px; /* Minimum height for readability on smaller screens */
-            height: 65vh; /* Responsive height: 65% of viewport height */
-            max-height: 700px; /* Max height to prevent excessive stretching on very large screens */
+            min-height: 400px; 
+            height: 65vh; 
+            max-height: 700px; 
             margin-top: 40px;
         }
 
         /* KPI Grid and Card Styles */
         .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Larger minimum width for KPIs */
-            gap: 55px; /* Increased gap between KPI cards */
-            margin-bottom: 90px; /* More space below the KPI section */
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+            gap: 55px; 
+            margin-bottom: 90px; 
             padding: 30px;
         }
         .kpi-card {
@@ -657,11 +657,11 @@
         
         <!-- "About This Data" Section -->
         <div class="data-info-box">
-            <p><strong>IMPORTANT NOTE:</strong> All data presented in this dashboard is purely hypothetical and generated for demonstration purposes. It does not represent actual Roblox moderation data. This tool serves as a conceptual model for analytics and reporting.</p>
+            <p><strong>IMPORTANT NOTE:</strong> All data presented in this dashboard is purely hypothetical and generated for demonstration purposes. This tool serves as a conceptual model for analytics and reporting.</p>
         </div>
 
         <p class="text-center mb-20 text-gray-400">
-            Gain executive-level insights into simulated moderation activities on the Roblox platform. This dashboard provides a comprehensive graphical overview, key performance indicators, and trend projections to support strategic decision-making in platform safety.
+            Gain executive-level insights into moderation activities on the Roblox platform. This dashboard provides a comprehensive graphical overview, key performance indicators, and trend projections to support strategic decision-making in platform safety.
         </p>
 
         <!-- Time Period Filters -->
